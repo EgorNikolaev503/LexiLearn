@@ -16,6 +16,7 @@ import csv
 from super_j import super_dict
 from kivy.uix.spinner import Spinner
 from kivy.graphics import Rectangle, Color
+from difflib import SequenceMatcher
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -581,14 +582,14 @@ class PracticeScreen(Screen):
 
         self.center_label.text = f"Переведите: {self.rand_sent[1]}"
 
-        self.input_field = TextInput(
+        self.input_field_s = TextInput(
             size_hint=(1, None),
             height=50,
             multiline=False,
             font_size=24,
             hint_text="Введите перевод..."
         )
-        self.question_layout.add_widget(self.input_field)
+        self.question_layout.add_widget(self.input_field_s)
 
     def start_practice(self, *args):
         """Начинает практику."""
@@ -624,6 +625,8 @@ class PracticeScreen(Screen):
                 self.show_correct_answer_input()
             elif self.type_question == 2:
                 self.show_correct_answer_btn_s(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
+            elif self.type_question == 3:
+                self.show_correct_answer_input_s(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
 
             self.start_button.text = "Следующее слово"
         elif self.start_button.text == "Следующее слово":
@@ -631,15 +634,18 @@ class PracticeScreen(Screen):
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2])
             self.center_label.color = [1, 1, 1, 1]
 
-            if ch == 0:
+            if ch == 2:
                 self.type_question = 0
                 self.load_new_question_input()
-            elif ch == 1:
+            elif ch == 0:
                 self.type_question = 1
                 self.load_new_question_w_btn()
-            elif ch == 2:
+            elif ch == 1:
                 self.type_question = 2
                 self.load_new_question_s_btn()
+            elif ch == 3:
+                self.type_question = 3
+                self.load_new_question_s_input()
 
             self.start_button.text = "Ответить"
 
@@ -647,6 +653,8 @@ class PracticeScreen(Screen):
         """Генерация нового вопроса и восстановление кнопок."""
         if hasattr(self, 'input_field') and self.input_field:
             self.question_layout.remove_widget(self.input_field)
+        if hasattr(self, 'input_field_s') and self.input_field_s:
+            self.question_layout.remove_widget(self.input_field_s)
 
         if self.chance_get_two(0.7) == 0:
             self.rand_word_question = self.get_random_comp_word()
@@ -690,6 +698,8 @@ class PracticeScreen(Screen):
         """Генерация нового вопроса и восстановление кнопок."""
         if hasattr(self, 'input_field') and self.input_field:
             self.question_layout.remove_widget(self.input_field)
+        if hasattr(self, 'input_field_s') and self.input_field_s:
+            self.question_layout.remove_widget(self.input_field_s)
 
         self.rand_word_question = self.get_random_comp_word()
         self.rand_sent = self.get_random_sent(self.rand_word_question)
@@ -740,15 +750,18 @@ class PracticeScreen(Screen):
 
         self.center_label.text = f"{ang}\n\n{ru}"
 
-    def show_correct_answer_input_s(self, ang, ru):
-        for btn in self.answer_buttons:
-            if btn.text == self.correct_answer:
-                btn.background_color = [0, 1, 0, 1]
-            else:
-                btn.background_color = [1, 0, 0, 1]
-            btn.disabled = True
+    def calculate_similarity(self, user_input, correct_answer):
+        similarity_ratio = SequenceMatcher(None, user_input, correct_answer).ratio()
 
-        self.center_label.text = f"{ang}\n\n{ru}"
+        return round(similarity_ratio * 100, 2)
+
+    def show_correct_answer_input_s(self, ang, ru):
+        if self.calculate_similarity(self.input_field_s.text.lower(), self.rand_sent_question_norm_ang.lower()) > 80:
+            self.center_label.color = [0, 1, 0, 1]
+            self.center_label.text = 'Правильно!\n\n{ang}\n\n{ru}'
+        else:
+            self.center_label.color = [1, 0, 0, 1]
+            self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
 
     def show_correct_answer_input(self):
         """Подсвечивает правильный ответ."""
