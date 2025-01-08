@@ -22,6 +22,7 @@ Window.title = 'LexiLearn'
 client = Client()
 
 filename = "comp_words.csv"
+# test
 
 
 class SettingsScreen(Screen):
