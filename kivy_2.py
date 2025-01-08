@@ -571,7 +571,9 @@ class PracticeScreen(Screen):
     def start_practice(self, *args):
         """Начинает практику."""
         if self.start_button.text == "Старт":
+
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1])
+
             if ch == 0:
                 self.type_question = 1
                 self.load_new_question_input()
@@ -581,22 +583,29 @@ class PracticeScreen(Screen):
             elif ch == 2:
                 self.type_question = 3
                 self.load_new_question_s_btn()
+
             self.start_button.text = "Ответить"
             self.difficulty_spinner.disabled = True
             self.question_layout.height = 2 * 85
+
             for btn in self.answer_buttons:
                 btn.opacity = 1
+
         elif self.start_button.text == "Ответить":
+
             if self.type_question == 2:
                 self.show_correct_answer_btn()
             elif self.type_question == 1:
                 self.show_correct_answer_input()
             elif self.type_question == 3:
                 self.show_correct_answer_btn_s(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
+
             self.start_button.text = "Следующее слово"
         elif self.start_button.text == "Следующее слово":
+
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1])
             self.center_label.color = [1, 1, 1, 1]
+
             if ch == 0:
                 self.type_question = 1
                 self.load_new_question_input()
@@ -606,6 +615,7 @@ class PracticeScreen(Screen):
             elif ch == 2:
                 self.type_question = 3
                 self.load_new_question_s_btn()
+
             self.start_button.text = "Ответить"
 
     def load_new_question_w_btn(self):
