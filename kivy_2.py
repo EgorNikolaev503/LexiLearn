@@ -278,10 +278,10 @@ class TheoryScreen(Screen):
         self.next_button.bind(on_release=self.text_load)
 
         # Кнопка "Добавить в конспект"
-        self.jorn_button = Button(text="Добавить в конспект", size_hint=(None, None), size=(200, 60))
+        self.jorn_button = Button(text="Добавить в конспект", size_hint=(1, None), height=60)
 
         # Кнопка "Больше примеров"
-        self.more_ex_button = Button(text="Больше примеров", size_hint=(None, None), size=(200, 60))
+        self.more_ex_button = Button(text="Больше примеров", size_hint=(1, None), height=60)
         self.more_ex_button.bind(on_release=self.more_w)
 
         # Верхняя панель
@@ -334,7 +334,6 @@ class TheoryScreen(Screen):
         # Лейаут для дополнительных кнопок
         self.func_layout2 = BoxLayout(size_hint_y=None, height=75)
         self.func_layout2.add_widget(self.jorn_button)
-        self.func_layout2.add_widget(Label())
         self.func_layout2.add_widget(self.more_ex_button)
 
         # Добавляем все элементы в основной лейаут
