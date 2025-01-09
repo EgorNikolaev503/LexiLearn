@@ -460,14 +460,18 @@ class PracticeScreen(Screen):
         self.difficulty_spinner = Spinner(
             text='Легчайший',
             values=('Легчайший', 'Лёгкий', 'Средний'),
-            size_hint=(None, None),
-            size=(150, 75)
+            size_hint=(1, None),
+            height=75
         )
         self.difficulty_spinner.bind(text=self.on_difficulty_change)
         self.toolbar.add_widget(self.difficulty_spinner)
 
+        self.stop_button = Button(text="Завершить", size_hint=(1, None), height=75)
+        self.stop_button.bind(on_release=self.stop)
+        self.toolbar.add_widget(self.stop_button)
+
         # Кнопка "Назад"
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(1, None), height=75)
         self.back_button.bind(on_release=self.go_back)
         self.toolbar.add_widget(self.back_button)
 
@@ -503,6 +507,17 @@ class PracticeScreen(Screen):
         with self.canvas.before:
             self.color_rect = Color(0.192, 0.173, 0.180, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
+
+    def stop(self, *args):
+        self.question_layout.clear_widgets()
+        if hasattr(self, 'input_field') and self.input_field:
+            self.question_layout.remove_widget(self.input_field)
+        if hasattr(self, 'input_field_s') and self.input_field_s:
+            self.question_layout.remove_widget(self.input_field_s)
+
+        self.center_label.text = f"Выберите уровень сложности и нажимайте на кнопку 'Старт'"
+
+        self.start_button.text = "Старт"
 
     def on_difficulty_change(self, spinner, text):
         """Обработчик изменения сложности."""
@@ -579,6 +594,7 @@ class PracticeScreen(Screen):
 
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
+        print(self.rand_sent_question_norm_ang)
 
         self.center_label.text = f"Переведите: {self.rand_sent[1]}"
 
@@ -756,9 +772,10 @@ class PracticeScreen(Screen):
         return round(similarity_ratio * 100, 2)
 
     def show_correct_answer_input_s(self, ang, ru):
-        if self.calculate_similarity(self.input_field_s.text.lower(), self.rand_sent_question_norm_ang.lower()) > 80:
+        if self.calculate_similarity(self.input_field_s.text.lower().strip(),
+                                     self.rand_sent_question_norm_ang.lower().strip()) > 80:
             self.center_label.color = [0, 1, 0, 1]
-            self.center_label.text = 'Правильно!\n\n{ang}\n\n{ru}'
+            self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
