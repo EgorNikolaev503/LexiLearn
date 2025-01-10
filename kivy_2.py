@@ -134,7 +134,7 @@ class SettingsScreen(Screen):
         self.add_widget(self.layout)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def go_back(self, *args):
@@ -211,7 +211,7 @@ class AllWordsScreen(Screen):
         self.bind(width=self._update_text_sizes)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def _resize_label(self, instance, texture_size):
@@ -309,7 +309,7 @@ class WordShow(Screen):
 
         # Цвет фона
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def _resize_label(self, instance, texture_size):
@@ -430,7 +430,7 @@ class TheoryScreen(Screen):
         self.bind(width=self._update_text_sizes)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def go_back(self, *args):
@@ -588,7 +588,7 @@ class PracticeScreen(Screen):
         self.add_widget(self.layout)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def stop(self, *args):
@@ -942,7 +942,7 @@ class CompWordsScreen(Screen):
         self.add_widget(self.main_layout)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def on_pre_enter(self, *args):
@@ -1039,7 +1039,7 @@ class SearchMenuComp(Screen):
         self.add_widget(self.layout)
 
         with self.canvas.before:
-            self.color_rect = Color(0.192, 0.173, 0.180, 1)
+            self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def go_back(self, *args):
@@ -1108,7 +1108,7 @@ class MainWind(App):
         self.box2 = BoxLayout(orientation='vertical', spacing=25)
         self.box_main = BoxLayout(orientation='vertical', padding=[20], spacing=40)
 
-        self.label = Label(text='LexiLearn', font_size=30)
+        self.label = Label(text='Lexi\nLearn', font_size=30, font_name="IntroDemo-BlackCAPS.otf")
         self.label2 = Label(halign='center', size_hint_y=0.4)
 
         self.btn = PressableButton(text='Настройки', font_size=22,
