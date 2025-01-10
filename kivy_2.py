@@ -15,14 +15,98 @@ import os
 import csv
 from super_j import super_dict
 from kivy.uix.spinner import Spinner
-from kivy.graphics import Rectangle, Color
+from kivy.graphics import Rectangle, Color, RoundedRectangle
 from difflib import SequenceMatcher
+from kivy.uix.widget import Widget
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
 client = Client()
 
 filename = "comp_words.csv"
+
+
+class PressableButton(Widget):
+    def __init__(self, text="", font_size=18, color=(0.2, 0.6, 0.8, 1), shadow_color=(0.1, 0.4, 0.6, 1),
+                 on_release_callback=None, **kwargs):
+        super().__init__(**kwargs)
+        self.color = color if len(color) == 4 else self.rgb_to_kivy_color(color)
+        self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
+        self.text = text
+        self.font_size = font_size
+        self.shadow_height = 10  # Высота тени
+        self.on_release_callback = on_release_callback  # Сохраняем callback для обработки
+
+        # Размеры кнопки
+        self.size = kwargs.get("size", (300, 100))
+        self.pos = kwargs.get("pos", (100, 200))
+
+        # Рисуем кнопку и тень
+        with self.canvas:
+            # Тень
+            self.shadow_color_instruction = Color(*self.shadow_color)
+            self.shadow = RoundedRectangle(size=(self.size[0], self.size[1]),
+                                           pos=(self.pos[0], self.pos[1] - self.shadow_height), radius=[20])
+
+            # Кнопка
+            self.color_instruction = Color(*self.color)
+            self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[20])
+
+        # Добавляем текстовый лейбл
+        self.label = Label(
+            text=self.text,
+            halign="center",
+            valign="middle",
+            size=self.size,
+            pos=self.pos,
+            font_size=self.font_size,
+            font_name="IntroDemo-BlackCAPS.otf",
+            color=(1, 1, 1, 1)  # Белый текст
+        )
+        self.add_widget(self.label)
+
+        # Добавляем обработчики событий
+        self.bind(pos=self.update_graphics, size=self.update_graphics)
+
+    @staticmethod
+    def rgb_to_kivy_color(rgb, alpha=1.0):
+        """Конвертирует цвет из RGB (0-255) в формат Kivy RGBA (0-1)."""
+        return tuple(channel / 255 for channel in rgb) + (alpha,)
+
+    def update_graphics(self, *args):
+        """Обновление графики при изменении размера или положения."""
+        self.shadow.size = self.size
+        self.shadow.pos = (self.pos[0], self.pos[1] - self.shadow_height)
+        self.rect.size = self.size
+        self.rect.pos = self.pos
+
+        # Обновляем текстовый лейбл
+        self.label.size = self.size
+        self.label.pos = self.pos
+
+    def on_touch_down(self, touch):
+        """Обработка нажатия на кнопку."""
+
+        # Проверка попадания в область кнопки с учетом положения
+        if self.collide_point(*touch.pos):
+            self.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Опускаем кнопку
+            self.shadow_color_instruction.a = 0  # Прячем тень
+            return True
+        return super().on_touch_down(touch)
+
+    def on_touch_up(self, touch):
+        """Обработка отжатия кнопки."""
+
+        # Проверяем, произошло ли отпускание внутри кнопки с учетом положения
+        if self.collide_point(*touch.pos):
+            self.pos = (self.pos[0], self.pos[1] + self.shadow_height)  # Поднимаем кнопку
+            self.shadow_color_instruction.a = 1  # Показываем тень
+
+            # Вызываем callback при отпускании кнопки
+            if self.on_release_callback:
+                self.on_release_callback()
+            return True
+        return super().on_touch_up(touch)
 
 
 class SettingsScreen(Screen):
