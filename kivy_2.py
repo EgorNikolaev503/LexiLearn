@@ -1100,18 +1100,27 @@ class MainWind(App):
         self.settings_screen = SettingsScreen(name='settings')
         self.main_screen = Screen(name='main')
 
+        with self.main_screen.canvas.before:
+            Color(0.23, 0.14, 0.4, 1)
+            self.rect = Rectangle(size=self.main_screen.size, pos=self.main_screen.pos)
+
         self.box1 = BoxLayout(size_hint_y=None, height=75, spacing=10)
-        self.box2 = BoxLayout(orientation='vertical', spacing=15)
+        self.box2 = BoxLayout(orientation='vertical', spacing=25)
         self.box_main = BoxLayout(orientation='vertical', padding=[20], spacing=40)
 
         self.label = Label(text='LexiLearn', font_size=30)
-        self.label2 = Label(halign='center')
+        self.label2 = Label(halign='center', size_hint_y=0.4)
 
-        self.btn = Button(text='Настройки')
-        self.btn3 = Button(text='ТЕОРИЯ')
-        self.btn4 = Button(text='ПРАКТИКА')
-        self.btn5 = Button(text='БАНК ИЗУЧЕНЫХ СЛОВ')
-        self.btn6 = Button(text='ОТКРЫТЫЙ БАНК СЛОВ')
+        self.btn = PressableButton(text='Настройки', font_size=22,
+                                   on_release_callback=lambda: self.open_settings(self.screen_manager))
+        self.btn3 = PressableButton(text="ТЕОРИЯ", font_size=28,
+                                    on_release_callback=lambda: self.open_theory(self.screen_manager))
+        self.btn4 = PressableButton(text='ПРАКТИКА', font_size=28,
+                                    on_release_callback=lambda: self.open_practice(self.screen_manager))
+        self.btn5 = PressableButton(text='БАНК ИЗУЧЕНЫХ СЛОВ', font_size=28,
+                                    on_release_callback=lambda: self.open_comp_words_bank(self.screen_manager))
+        self.btn6 = PressableButton(text='ОТКРЫТЫЙ БАНК СЛОВ', font_size=28,
+                                    on_release_callback=lambda: self.open_all_words_bank(self.screen_manager))
 
         self.box1.add_widget(self.label)
         self.box1.add_widget(self.btn)
@@ -1127,17 +1136,18 @@ class MainWind(App):
         self.screen_manager.add_widget(self.main_screen)
         self.screen_manager.add_widget(self.settings_screen)
 
-        self.btn.bind(on_release=lambda instance: self.open_settings(self.screen_manager))
-        self.btn3.bind(on_release=lambda instance: self.open_theory(self.screen_manager))
-        self.btn4.bind(on_release=lambda instance: self.open_practice(self.screen_manager))
-        self.btn5.bind(on_release=lambda instance: self.open_comp_words_bank(self.screen_manager))
-        self.btn6.bind(on_release=lambda instance: self.open_all_words_bank(self.screen_manager))
-
         self.main_screen.bind(on_pre_enter=self.update_statistics)
 
         self.update_statistics()
 
+        self.main_screen.bind(size=self.update_rect, pos=self.update_rect)
+
         return self.screen_manager
+
+    def update_rect(self, instance, value):
+        # Обновляем размер и позицию прямоугольника, чтобы он заполнил весь экран
+        self.rect.size = instance.size
+        self.rect.pos = instance.pos
 
     def update_statistics(self, *args):
         studied_words = len(self.read_csv_as_list())
