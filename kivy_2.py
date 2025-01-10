@@ -517,6 +517,7 @@ class PracticeScreen(Screen):
         self.center_label.text = f"Выберите уровень сложности и нажимайте на кнопку 'Старт'"
 
         self.start_button.text = "Старт"
+        self.difficulty_spinner.disabled = False
 
     def on_difficulty_change(self, spinner, text):
         """Обработчик изменения сложности."""
