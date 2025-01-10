@@ -782,7 +782,7 @@ class PracticeScreen(Screen):
 
     def show_correct_answer_input(self):
         """Подсвечивает правильный ответ."""
-        if self.input_field.text == self.rand_word_question:
+        if self.input_field.text.strip().lower() == self.rand_word_question.strip().lower():
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = 'Правильно!'
         else:
