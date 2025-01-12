@@ -826,10 +826,7 @@ class PracticeScreen(Screen):
 
     def load_new_question_s_w_input(self):
         """Генерация нового вопроса и восстановление кнопок."""
-        if hasattr(self, 'input_field') and self.input_field:
-            self.question_layout.remove_widget(self.input_field)
-        if hasattr(self, 'input_field_s') and self.input_field_s:
-            self.question_layout.remove_widget(self.input_field_s)
+        self.clear()
 
         self.rand_word_question = self.get_random_comp_word()
         self.rand_sent = self.get_random_sent(self.rand_word_question)
@@ -838,18 +835,15 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
         self.current_word = self.translate_to_english(self.rand_word_question)
-        self.correct_answer = self.rand_word_question
-        other_answers = self.generate_random_ang_words(exclude=[self.correct_answer])
-        answers = [self.correct_answer] + other_answers
-        random.shuffle(answers)
 
         self.input_field_s_w = TextInput(
             size_hint=(1, None),
             height=50,
             multiline=False,
             font_size=24,
-            hint_text="Введите перевод..."
+            hint_text="Введите слово..."
         )
+        self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
         self.question_layout.add_widget(self.input_field_s_w)
 
     def select_answer(self, instance):
@@ -900,6 +894,15 @@ class PracticeScreen(Screen):
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно, правильный ответ: {self.rand_word_question}'
+
+    def show_correct_answer_input_s_w(self, ang, ru):
+        """Подсвечивает правильный ответ."""
+        if self.input_field_s_w.text.strip().lower() == self.rand_word_question.strip().lower():
+            self.center_label.color = [0, 1, 0, 1]
+            self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+        else:
+            self.center_label.color = [1, 0, 0, 1]
+            self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
 
     def translate_to_english(self, word):
         """Перевод слова на английский (заглушка)."""
