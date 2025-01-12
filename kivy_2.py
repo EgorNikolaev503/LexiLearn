@@ -824,6 +824,34 @@ class PracticeScreen(Screen):
 
         self.center_label.text = f"Переведите: {self.rand_sent_question}"
 
+    def load_new_question_s_w_input(self):
+        """Генерация нового вопроса и восстановление кнопок."""
+        if hasattr(self, 'input_field') and self.input_field:
+            self.question_layout.remove_widget(self.input_field)
+        if hasattr(self, 'input_field_s') and self.input_field_s:
+            self.question_layout.remove_widget(self.input_field_s)
+
+        self.rand_word_question = self.get_random_comp_word()
+        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent_question = self.replace_word_with_blanks(self.rand_sent[0],
+                                                                self.rand_word_question)
+        self.rand_sent_question_norm_ang = self.rand_sent[0]
+        self.rand_sent_question_norm_ru = self.rand_sent[1]
+        self.current_word = self.translate_to_english(self.rand_word_question)
+        self.correct_answer = self.rand_word_question
+        other_answers = self.generate_random_ang_words(exclude=[self.correct_answer])
+        answers = [self.correct_answer] + other_answers
+        random.shuffle(answers)
+
+        self.input_field_s_w = TextInput(
+            size_hint=(1, None),
+            height=50,
+            multiline=False,
+            font_size=24,
+            hint_text="Введите перевод..."
+        )
+        self.question_layout.add_widget(self.input_field_s_w)
+
     def select_answer(self, instance):
         """Выбор варианта ответа."""
         self.selected_answer = instance.text
@@ -967,8 +995,9 @@ class CompWordsScreen(Screen):
         return data_list[::-1]
 
     def search_menu(self, screen_manager):
-        self.comp_search_menu = SearchMenuComp(name='comp_search_menu')
-        self.manager.add_widget(self.comp_search_menu)
+        if not self.manager.has_screen('comp_search_menu'):
+            self.comp_search_menu = SearchMenuComp(name='comp_search_menu')
+            self.manager.add_widget(self.comp_search_menu)
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_search_menu'
 
@@ -1145,7 +1174,6 @@ class MainWind(App):
         return self.screen_manager
 
     def update_rect(self, instance, value):
-        # Обновляем размер и позицию прямоугольника, чтобы он заполнил весь экран
         self.rect.size = instance.size
         self.rect.pos = instance.pos
 
@@ -1159,26 +1187,30 @@ class MainWind(App):
         self.screen_manager.current = 'settings'
 
     def open_theory(self, screen_manager):
-        self.theory_screen = TheoryScreen(name='theory')
-        self.screen_manager.add_widget(self.theory_screen)
+        if not self.screen_manager.has_screen('theory'):
+            self.theory_screen = TheoryScreen(name='theory')
+            self.screen_manager.add_widget(self.theory_screen)
         self.screen_manager.transition = FadeTransition(duration=0.20)
         self.screen_manager.current = 'theory'
 
     def open_practice(self, screen_manager):
-        self.practice_screen = PracticeScreen(name='practice')
-        self.screen_manager.add_widget(self.practice_screen)
+        if not self.screen_manager.has_screen('practice'):
+            self.practice_screen = PracticeScreen(name='practice')
+            self.screen_manager.add_widget(self.practice_screen)
         self.screen_manager.transition = FadeTransition(duration=0.20)
         self.screen_manager.current = 'practice'
 
     def open_comp_words_bank(self, screen_manager):
-        self.comp_words_screen = CompWordsScreen(name='comp_words')
-        self.screen_manager.add_widget(self.comp_words_screen)
+        if not self.screen_manager.has_screen('comp_words'):
+            self.comp_words_screen = CompWordsScreen(name='comp_words')
+            self.screen_manager.add_widget(self.comp_words_screen)
         self.screen_manager.transition = FadeTransition(duration=0.20)
         self.screen_manager.current = 'comp_words'
 
     def open_all_words_bank(self, screen_manager):
-        self.words_screen = AllWordsScreen(name='all_words')
-        self.screen_manager.add_widget(self.words_screen)
+        if not self.screen_manager.has_screen('all_words'):
+            self.words_screen = AllWordsScreen(name='all_words')
+            self.screen_manager.add_widget(self.words_screen)
         self.screen_manager.transition = FadeTransition(duration=0.20)
         self.screen_manager.current = 'all_words'
 
