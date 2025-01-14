@@ -691,6 +691,49 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field_s)
 
+    def load_new_question_s_input_audio(self):
+        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
+        self.clear()
+
+        self.rand_word_question = self.get_random_comp_word()
+        self.rand_sent = self.get_random_sent(self.rand_word_question)
+
+        self.rand_sent_question_norm_ang = self.rand_sent[0]
+        self.rand_sent_question_norm_ru = self.rand_sent[1]
+
+        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)  # Изначально кнопки невидимы
+        btn_audio.bind(
+            on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
+        self.audio_butt_lay.add_widget(btn_audio)
+
+        # print(self.rand_sent_question_norm_ang)
+
+        self.center_label.text = f"Напишите предложение на слух"
+
+        self.input_field_s = TextInput(
+            size_hint=(1, None),
+            height=50,
+            multiline=False,
+            font_size=24,
+            hint_text="Введите перевод..."
+        )
+        self.question_layout.add_widget(self.input_field_s)
+
+    def find_sentence_index(self, word, sentence):
+        if word in super_dict:
+            for index, pair in enumerate(super_dict[word], start=1):
+                if pair[0] == sentence:
+                    return index
+        return None
+
+    def play_audio(self, word, sentence):
+        wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
+
+        sample_rate, audio_data = read(wav_file)
+
+        sd.play(audio_data, samplerate=sample_rate)
+        sd.wait()
+
     def start_practice(self, *args):
         """Начинает практику."""
         if self.start_button.text == "Старт":
