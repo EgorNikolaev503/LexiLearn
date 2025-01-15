@@ -18,6 +18,8 @@ from kivy.uix.spinner import Spinner
 from kivy.graphics import Rectangle, Color, RoundedRectangle
 from difflib import SequenceMatcher
 from kivy.uix.widget import Widget
+from scipy.io.wavfile import read
+import sounddevice as sd
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
