@@ -533,7 +533,7 @@ class PracticeScreen(Screen):
         self.correct_answer = None
         self.selected_answer = None
         self.type_question = 0
-        self.stand_chanse = [0.5, 0.8, 0.95]
+        self.stand_chanse = [0.5, 0.7, 0.8, 0.9, 0.95, 0.98]
 
         # Основной лейаут
         self.layout = BoxLayout(orientation='vertical', padding=[20], spacing=10)
@@ -544,7 +544,7 @@ class PracticeScreen(Screen):
         # Spinner для выбора сложности
         self.difficulty_spinner = Spinner(
             text='Легчайший',
-            values=('Легчайший', 'Лёгкий', 'Средний'),
+            values=('Легчайший', 'Лёгкий', 'Средний', 'Сложный', 'Случайно'),
             size_hint=(1, None),
             height=75
         )
@@ -607,13 +607,17 @@ class PracticeScreen(Screen):
     def on_difficulty_change(self, spinner, text):
         """Обработчик изменения сложности."""
         if text == 'Легчайший':
-            self.stand_chanse = [0.5, 0.8, 0.95]
+            self.stand_chanse = [0.5, 0.7, 0.8, 0.9, 0.95, 0.98]
         elif text == 'Лёгкий':
-            self.stand_chanse = [0.3, 0.7, 0.9]
+            self.stand_chanse = [0.3, 0.55, 0.65, 0.85, 0.90, 0.96]
         elif text == 'Средний':
-            self.stand_chanse = [0.05, 0.40, 0.75]
+            self.stand_chanse = [0.05, 0.25, 0.35, 0.65, 0.85, 0.95]
+        elif text == 'Сложный':
+            self.stand_chanse = [0.05, 0.06, 0.20, 0.4, 0.7, 0.90]
+        elif text == 'Случайно':
+            self.stand_chanse = [0.15, 0.30, 0.45, 0.60, 0.75, 0.90]
 
-    def chance_get_main(self, proportions1, proportions2, proportions3):
+    def chance_get_main(self, proportions1, proportions2, proportions3, proportions4, proportions5, proportions6):
         chance = random.random()
         if 0 < chance < proportions1:
             return 0
@@ -621,8 +625,14 @@ class PracticeScreen(Screen):
             return 1
         elif proportions2 < chance < proportions3:
             return 2
-        else:
+        elif proportions3 < chance < proportions4:
             return 3
+        elif proportions4 < chance < proportions5:
+            return 4
+        elif proportions5 < chance < proportions6:
+            return 5
+        else:
+            return 6
 
     def chance_get_two(self, proportions):
         chance = random.random()
@@ -720,6 +730,34 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field_s)
 
+    def load_new_question_s_input_audio_rus(self):
+        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
+        self.clear()
+
+        self.rand_word_question = self.get_random_comp_word()
+        self.rand_sent = self.get_random_sent(self.rand_word_question)
+
+        self.rand_sent_question_norm_ang = self.rand_sent[0]
+        self.rand_sent_question_norm_ru = self.rand_sent[1]
+
+        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75, )  # Изначально кнопки невидимы
+        btn_audio.bind(
+            on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
+        self.audio_butt_lay.add_widget(btn_audio)
+
+        # print(self.rand_sent_question_norm_ang)
+
+        self.center_label.text = f"Напишите предложение на слух"
+
+        self.input_field_s = TextInput(
+            size_hint=(1, None),
+            height=50,
+            multiline=False,
+            font_size=24,
+            hint_text="Введите перевод...",
+        )
+        self.question_layout.add_widget(self.input_field_s)
+
     def find_sentence_index(self, word, sentence):
         if word in super_dict:
             for index, pair in enumerate(super_dict[word], start=1):
@@ -741,18 +779,27 @@ class PracticeScreen(Screen):
 
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2])
 
-            if ch == 2:
+            if ch == 0:
                 self.type_question = 0
-                self.load_new_question_input()
-            elif ch == 0:
-                self.type_question = 1
-                self.load_new_question_s_input_audio()
+                self.load_new_question_w_btn()
             elif ch == 1:
-                self.type_question = 2
+                self.type_question = 1
                 self.load_new_question_s_btn()
+            elif ch == 2:
+                self.type_question = 2
+                self.load_new_question_input()
             elif ch == 3:
                 self.type_question = 3
                 self.load_new_question_s_input()
+            elif ch == 4:
+                self.type_question = 4
+                self.load_new_question_s_w_input()
+            elif ch == 5:
+                self.type_question = 5
+                self.load_new_question_s_input_audio()
+            elif ch == 6:
+                self.type_question = 6
+                self.load_new_question_s_input_audio_rus()
 
             self.start_button.text = "Ответить"
             self.difficulty_spinner.disabled = True
@@ -764,14 +811,21 @@ class PracticeScreen(Screen):
         elif self.start_button.text == "Ответить":
 
             if self.type_question == 1:
-                self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
-                                                       self.rand_sent_question_norm_ru)
-            elif self.type_question == 0:
-                self.show_correct_answer_input()
-            elif self.type_question == 2:
                 self.show_correct_answer_btn_s(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
+            elif self.type_question == 0:
+                self.show_correct_answer_btn()
+            elif self.type_question == 2:
+                self.show_correct_answer_input()
             elif self.type_question == 3:
                 self.show_correct_answer_input_s(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
+            elif self.type_question == 4:
+                self.show_correct_answer_input_s_w(self.rand_sent_question_norm_ang, self.rand_sent_question_norm_ru)
+            elif self.type_question == 5:
+                self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
+                                                       self.rand_sent_question_norm_ru)
+            elif self.type_question == 6:
+                self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
+                                                       self.rand_sent_question_norm_ru)
 
             self.start_button.text = "Следующее слово"
         elif self.start_button.text == "Следующее слово":
@@ -779,18 +833,27 @@ class PracticeScreen(Screen):
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2])
             self.center_label.color = [1, 1, 1, 1]
 
-            if ch == 2:
+            if ch == 0:
                 self.type_question = 0
-                self.load_new_question_input()
-            elif ch == 0:
-                self.type_question = 1
-                self.load_new_question_s_input_audio()
+                self.load_new_question_w_btn()
             elif ch == 1:
-                self.type_question = 2
+                self.type_question = 1
                 self.load_new_question_s_btn()
+            elif ch == 2:
+                self.type_question = 2
+                self.load_new_question_input()
             elif ch == 3:
                 self.type_question = 3
                 self.load_new_question_s_input()
+            elif ch == 4:
+                self.type_question = 4
+                self.load_new_question_s_w_input()
+            elif ch == 5:
+                self.type_question = 5
+                self.load_new_question_s_input_audio()
+            elif ch == 6:
+                self.type_question = 6
+                self.load_new_question_s_input_audio_rus()
 
             self.start_button.text = "Ответить"
 
