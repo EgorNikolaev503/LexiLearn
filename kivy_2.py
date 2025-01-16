@@ -777,7 +777,8 @@ class PracticeScreen(Screen):
         """Начинает практику."""
         if self.start_button.text == "Старт":
 
-            ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2])
+            ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
+                                      self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
 
             if ch == 0:
                 self.type_question = 0
@@ -830,7 +831,8 @@ class PracticeScreen(Screen):
             self.start_button.text = "Следующее слово"
         elif self.start_button.text == "Следующее слово":
 
-            ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2])
+            ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
+                                      self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
             self.center_label.color = [1, 1, 1, 1]
 
             if ch == 0:
