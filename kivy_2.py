@@ -577,14 +577,17 @@ class PracticeScreen(Screen):
         self.question_layout = GridLayout(cols=3, spacing=10, padding=[0, 10], size_hint_y=None, height=0)
         self.answer_buttons = []
         for _ in range(6):  # Создаём 6 кнопок
-            btn = Button(size_hint=(1, None), height=75, opacity=0)  # Изначально кнопки невидимы
+            btn = Button(size_hint=(1, None), height=75, opacity=0)
             btn.bind(on_release=self.select_answer)
             self.answer_buttons.append(btn)
             self.question_layout.add_widget(btn)
 
+        self.audio_butt_lay = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
+
         # Добавление всех элементов в основной лейаут
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.center_label)
+        self.layout.add_widget(self.audio_butt_lay)
         self.layout.add_widget(self.question_layout)
         self.layout.add_widget(self.bottom_toolbar)
         self.add_widget(self.layout)
@@ -594,11 +597,7 @@ class PracticeScreen(Screen):
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def stop(self, *args):
-        self.question_layout.clear_widgets()
-        if hasattr(self, 'input_field') and self.input_field:
-            self.question_layout.remove_widget(self.input_field)
-        if hasattr(self, 'input_field_s') and self.input_field_s:
-            self.question_layout.remove_widget(self.input_field_s)
+        self.clear()
 
         self.center_label.text = f"Выберите уровень сложности и нажимайте на кнопку 'Старт'"
 
@@ -655,7 +654,7 @@ class PracticeScreen(Screen):
 
     def load_new_question_input(self):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для слов."""
-        self.question_layout.clear_widgets()
+        self.clear()
 
         self.rand_word_question = self.get_random_comp_word()
         self.current_word = self.translate_to_english(self.rand_word_question)
@@ -673,7 +672,7 @@ class PracticeScreen(Screen):
 
     def load_new_question_s_input(self):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
-        self.question_layout.clear_widgets()
+        self.clear()
 
         self.rand_word_question = self.get_random_comp_word()
         self.rand_sent = self.get_random_sent(self.rand_word_question)
@@ -703,7 +702,7 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
-        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)  # Изначально кнопки невидимы
+        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75, )  # Изначально кнопки невидимы
         btn_audio.bind(
             on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(btn_audio)
@@ -717,7 +716,7 @@ class PracticeScreen(Screen):
             height=50,
             multiline=False,
             font_size=24,
-            hint_text="Введите перевод..."
+            hint_text="Введите перевод...",
         )
         self.question_layout.add_widget(self.input_field_s)
 
@@ -747,7 +746,7 @@ class PracticeScreen(Screen):
                 self.load_new_question_input()
             elif ch == 0:
                 self.type_question = 1
-                self.load_new_question_w_btn()
+                self.load_new_question_s_input_audio()
             elif ch == 1:
                 self.type_question = 2
                 self.load_new_question_s_btn()
@@ -765,7 +764,8 @@ class PracticeScreen(Screen):
         elif self.start_button.text == "Ответить":
 
             if self.type_question == 1:
-                self.show_correct_answer_btn()
+                self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
+                                                       self.rand_sent_question_norm_ru)
             elif self.type_question == 0:
                 self.show_correct_answer_input()
             elif self.type_question == 2:
@@ -784,7 +784,7 @@ class PracticeScreen(Screen):
                 self.load_new_question_input()
             elif ch == 0:
                 self.type_question = 1
-                self.load_new_question_w_btn()
+                self.load_new_question_s_input_audio()
             elif ch == 1:
                 self.type_question = 2
                 self.load_new_question_s_btn()
@@ -796,10 +796,7 @@ class PracticeScreen(Screen):
 
     def load_new_question_w_btn(self):
         """Генерация нового вопроса и восстановление кнопок."""
-        if hasattr(self, 'input_field') and self.input_field:
-            self.question_layout.remove_widget(self.input_field)
-        if hasattr(self, 'input_field_s') and self.input_field_s:
-            self.question_layout.remove_widget(self.input_field_s)
+        self.clear()
 
         if self.chance_get_two(0.7) == 0:
             self.rand_word_question = self.get_random_comp_word()
@@ -841,10 +838,7 @@ class PracticeScreen(Screen):
 
     def load_new_question_s_btn(self):
         """Генерация нового вопроса и восстановление кнопок."""
-        if hasattr(self, 'input_field') and self.input_field:
-            self.question_layout.remove_widget(self.input_field)
-        if hasattr(self, 'input_field_s') and self.input_field_s:
-            self.question_layout.remove_widget(self.input_field_s)
+        self.clear()
 
         self.rand_word_question = self.get_random_comp_word()
         self.rand_sent = self.get_random_sent(self.rand_word_question)
@@ -867,7 +861,7 @@ class PracticeScreen(Screen):
             btn.disabled = False
             self.question_layout.add_widget(btn)
 
-        self.center_label.text = f"Переведите: {self.rand_sent_question}"
+        self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
 
     def load_new_question_s_w_input(self):
         """Генерация нового вопроса и восстановление кнопок."""
@@ -890,6 +884,16 @@ class PracticeScreen(Screen):
         )
         self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
         self.question_layout.add_widget(self.input_field_s_w)
+
+    def clear(self):
+        if hasattr(self, 'input_field') and self.input_field:
+            self.question_layout.remove_widget(self.input_field)
+        if hasattr(self, 'input_field_s') and self.input_field_s:
+            self.question_layout.remove_widget(self.input_field_s)
+        if hasattr(self, 'input_field_s_w') and self.input_field_s_w:
+            self.question_layout.remove_widget(self.input_field_s_w)
+        self.question_layout.clear_widgets()
+        self.audio_butt_lay.clear_widgets()
 
     def select_answer(self, instance):
         """Выбор варианта ответа."""
@@ -923,6 +927,15 @@ class PracticeScreen(Screen):
         return round(similarity_ratio * 100, 2)
 
     def show_correct_answer_input_s(self, ang, ru):
+        if self.calculate_similarity(self.input_field_s.text.lower().strip(),
+                                     self.rand_sent_question_norm_ang.lower().strip()) > 80:
+            self.center_label.color = [0, 1, 0, 1]
+            self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+        else:
+            self.center_label.color = [1, 0, 0, 1]
+            self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
+
+    def show_correct_answer_input_s_audio(self, ang, ru):
         if self.calculate_similarity(self.input_field_s.text.lower().strip(),
                                      self.rand_sent_question_norm_ang.lower().strip()) > 80:
             self.center_label.color = [0, 1, 0, 1]
