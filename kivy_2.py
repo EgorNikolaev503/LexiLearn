@@ -613,12 +613,13 @@ class PracticeScreen(Screen):
         elif text == 'Средний':
             self.stand_chanse = [0.05, 0.25, 0.35, 0.65, 0.85, 0.95]
         elif text == 'Сложный':
-            self.stand_chanse = [0.05, 0.06, 0.20, 0.4, 0.7, 0.90]
+            self.stand_chanse = [0.05, 0.06, 0.15, 0.35, 0.65, 0.85]
         elif text == 'Случайно':
             self.stand_chanse = [0.15, 0.30, 0.45, 0.60, 0.75, 0.90]
 
     def chance_get_main(self, proportions1, proportions2, proportions3, proportions4, proportions5, proportions6):
         chance = random.random()
+        print(chance)
         if 0 < chance < proportions1:
             return 0
         elif proportions1 < chance < proportions2:
@@ -730,7 +731,7 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field_s)
 
-    def load_new_question_s_input_audio_rus(self):
+    def load_new_question_s_input_audio_hard(self):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
@@ -740,14 +741,14 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
-        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75, )  # Изначально кнопки невидимы
-        btn_audio.bind(
-            on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
-        self.audio_butt_lay.add_widget(btn_audio)
+        self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)  # Изначально кнопки невидимы
+        self.btn_audio.bind(
+            on_release=lambda instance: self.play_one_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
+        self.audio_butt_lay.add_widget(self.btn_audio)
 
         # print(self.rand_sent_question_norm_ang)
 
-        self.center_label.text = f"Напишите предложение на слух"
+        self.center_label.text = f"Напишите предложение на слух с первого раза"
 
         self.input_field_s = TextInput(
             size_hint=(1, None),
@@ -766,6 +767,15 @@ class PracticeScreen(Screen):
         return None
 
     def play_audio(self, word, sentence):
+        wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
+
+        sample_rate, audio_data = read(wav_file)
+
+        sd.play(audio_data, samplerate=sample_rate)
+        sd.wait()
+
+    def play_one_audio(self, word, sentence):
+        self.btn_audio.disabled = True
         wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
 
         sample_rate, audio_data = read(wav_file)
@@ -800,7 +810,7 @@ class PracticeScreen(Screen):
                 self.load_new_question_s_input_audio()
             elif ch == 6:
                 self.type_question = 6
-                self.load_new_question_s_input_audio_rus()
+                self.load_new_question_s_input_audio_hard()
 
             self.start_button.text = "Ответить"
             self.difficulty_spinner.disabled = True
@@ -855,7 +865,7 @@ class PracticeScreen(Screen):
                 self.load_new_question_s_input_audio()
             elif ch == 6:
                 self.type_question = 6
-                self.load_new_question_s_input_audio_rus()
+                self.load_new_question_s_input_audio_hard()
 
             self.start_button.text = "Ответить"
 
