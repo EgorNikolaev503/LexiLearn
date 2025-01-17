@@ -624,11 +624,11 @@ class PracticeScreen(Screen):
         elif proportions1 < chance < proportions2:
             return 1
         elif proportions2 < chance < proportions3:
-            return 2
-        elif proportions3 < chance < proportions4:
-            return 3
-        elif proportions4 < chance < proportions5:
             return 4
+        elif proportions3 < chance < proportions4:
+            return 2
+        elif proportions4 < chance < proportions5:
+            return 3
         elif proportions5 < chance < proportions6:
             return 5
         else:
