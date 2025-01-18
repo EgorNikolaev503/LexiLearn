@@ -20,6 +20,8 @@ from difflib import SequenceMatcher
 from kivy.uix.widget import Widget
 from scipy.io.wavfile import read
 import sounddevice as sd
+import sqlite3
+from datetime import datetime
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -435,6 +437,37 @@ class TheoryScreen(Screen):
             self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
+    def add_word_to_database(self, word, db_path='words.db'):
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS words (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                word TEXT NOT NULL UNIQUE,
+                type1 DATETIME,
+                type2 DATETIME,
+                type3 DATETIME,
+                type4 DATETIME,
+                type5 DATETIME,
+                type6 DATETIME,
+                type7 DATETIME
+            )
+        ''')
+        conn.commit()
+
+        try:
+            cursor.execute('''
+                INSERT INTO words (word) 
+                VALUES (?)
+            ''', (word,))
+            conn.commit()
+            print(f"Слово '{word}' успешно добавлено в базу данных.")
+        except sqlite3.IntegrityError:
+            print(f"Слово '{word}' уже существует в базе данных.")
+
+        conn.close()
+
     def go_back(self, *args):
         """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
@@ -496,6 +529,7 @@ class TheoryScreen(Screen):
         self.label.text = f"\n\nВаше слово {self.rand_word}\n\n"
         self.label2.text = self.text_ex
         self.next_button.text = 'Следущее слово'
+        self.add_word_to_database(self.rand_word)
 
     def more_w(self, *args):
         """Генерация дополнительных примеров предложений."""
@@ -663,12 +697,11 @@ class PracticeScreen(Screen):
         self.manager.transition = FadeTransition(duration=0.2)
         self.manager.current = 'main'
 
-    def load_new_question_input(self):
+    def load_new_question_input(self, q_word):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для слов."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.current_word = self.translate_to_english(self.rand_word_question)
+        self.current_word = self.translate_to_english(q_word)
 
         self.center_label.text = f"Переведите: {self.current_word}"
 
@@ -681,12 +714,11 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field)
 
-    def load_new_question_s_input(self):
+    def load_new_question_s_input(self, q_word):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent = self.get_random_sent(q_word)
 
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
@@ -703,19 +735,38 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field_s)
 
-    def load_new_question_s_input_audio(self):
+    def update_bd_for_word(self, word, type_q, db_path='words.db'):
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        current_time = datetime.now()
+
+        cursor.execute(f'''
+            UPDATE words
+            SET {type_q} = ?
+            WHERE word = ?
+        ''', (current_time, word))
+        conn.commit()
+
+        if cursor.rowcount == 0:
+            print(f"Слово '{word}' не найдено в базе данных.")
+        else:
+            print(f"Для слова '{word}' успешно обновлена дата в task1: {current_time}.")
+
+        conn.close()
+
+    def load_new_question_s_input_audio(self, q_word):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent = self.get_random_sent(q_word)
 
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
         btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75, )  # Изначально кнопки невидимы
         btn_audio.bind(
-            on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
+            on_release=lambda instance: self.play_audio(q_word, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(btn_audio)
         btn_audio.disabled = False
 
@@ -730,19 +781,18 @@ class PracticeScreen(Screen):
         )
         self.question_layout.add_widget(self.input_field_s)
 
-    def load_new_question_s_input_audio_hard(self):
+    def load_new_question_s_input_audio_hard(self, q_word):
         """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent = self.get_random_sent(q_word)
 
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
         self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)
         self.btn_audio.bind(
-            on_release=lambda instance: self.play_one_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
+            on_release=lambda instance: self.play_one_audio(q_word, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(self.btn_audio)
         self.btn_audio.disabled = False
 
@@ -789,28 +839,29 @@ class PracticeScreen(Screen):
 
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
                                       self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
+            self.main_word = self.get_random_comp_word()
 
             if ch == 0:
                 self.type_question = 0
-                self.load_new_question_w_btn()
+                self.load_new_question_w_btn(self.main_word)
             elif ch == 1:
                 self.type_question = 1
-                self.load_new_question_s_btn()
+                self.load_new_question_s_btn(self.main_word)
             elif ch == 2:
                 self.type_question = 2
-                self.load_new_question_input()
+                self.load_new_question_input(self.main_word)
             elif ch == 3:
                 self.type_question = 3
-                self.load_new_question_s_input()
+                self.load_new_question_s_input(self.main_word)
             elif ch == 4:
                 self.type_question = 4
-                self.load_new_question_s_w_input()
+                self.load_new_question_s_w_input(self.main_word)
             elif ch == 5:
                 self.type_question = 5
-                self.load_new_question_s_input_audio()
+                self.load_new_question_s_input_audio(self.main_word)
             elif ch == 6:
                 self.type_question = 6
-                self.load_new_question_s_input_audio_hard()
+                self.load_new_question_s_input_audio_hard(self.main_word)
 
             self.start_button.text = "Ответить"
             self.difficulty_spinner.disabled = True
@@ -835,8 +886,8 @@ class PracticeScreen(Screen):
                 self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
                                                        self.rand_sent_question_norm_ru)
             elif self.type_question == 6:
-                self.show_correct_answer_input_s_audio(self.rand_sent_question_norm_ang,
-                                                       self.rand_sent_question_norm_ru)
+                self.show_correct_answer_input_s_audio_hard(self.rand_sent_question_norm_ang,
+                                                            self.rand_sent_question_norm_ru)
 
             self.start_button.text = "Следующее слово"
         elif self.start_button.text == "Следующее слово":
@@ -844,46 +895,45 @@ class PracticeScreen(Screen):
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
                                       self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
             self.center_label.color = [1, 1, 1, 1]
+            self.main_word = self.get_random_comp_word()
 
             if ch == 0:
                 self.type_question = 0
-                self.load_new_question_w_btn()
+                self.load_new_question_w_btn(self.main_word)
             elif ch == 1:
                 self.type_question = 1
-                self.load_new_question_s_btn()
+                self.load_new_question_s_btn(self.main_word)
             elif ch == 2:
                 self.type_question = 2
-                self.load_new_question_input()
+                self.load_new_question_input(self.main_word)
             elif ch == 3:
                 self.type_question = 3
-                self.load_new_question_s_input()
+                self.load_new_question_s_input(self.main_word)
             elif ch == 4:
                 self.type_question = 4
-                self.load_new_question_s_w_input()
+                self.load_new_question_s_w_input(self.main_word)
             elif ch == 5:
                 self.type_question = 5
-                self.load_new_question_s_input_audio()
+                self.load_new_question_s_input_audio(self.main_word)
             elif ch == 6:
                 self.type_question = 6
-                self.load_new_question_s_input_audio_hard()
+                self.load_new_question_s_input_audio_hard(self.main_word)
 
             self.start_button.text = "Ответить"
 
-    def load_new_question_w_btn(self):
+    def load_new_question_w_btn(self, q_word):
         """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
         if self.chance_get_two(0.7) == 0:
-            self.rand_word_question = self.get_random_comp_word()
-            self.current_word = self.translate_to_english(self.rand_word_question)
-            self.correct_answer = self.rand_word_question
+            self.current_word = self.translate_to_english(q_word)
+            self.correct_answer = q_word
             other_answers = self.generate_random_ang_words(exclude=[self.correct_answer])
             answers = [self.correct_answer] + other_answers
             random.shuffle(answers)
         else:
-            self.rand_word_question = self.get_random_comp_word()
-            self.current_word = self.rand_word_question
-            self.correct_answer = self.translate_to_english(self.rand_word_question)
+            self.current_word = q_word
+            self.correct_answer = self.translate_to_english(q_word)
             other_answers = self.generate_random_rus_words(exclude=[self.correct_answer])
             answers = [self.correct_answer] + other_answers
             random.shuffle(answers)
@@ -911,18 +961,17 @@ class PracticeScreen(Screen):
         ]
         return " ".join(modified_words)
 
-    def load_new_question_s_btn(self):
+    def load_new_question_s_btn(self, q_word):
         """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent = self.get_random_sent(q_word)
         self.rand_sent_question = self.replace_word_with_blanks(self.rand_sent[0],
-                                                                self.rand_word_question)
+                                                                q_word)
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
-        self.current_word = self.translate_to_english(self.rand_word_question)
-        self.correct_answer = self.rand_word_question
+        self.current_word = self.translate_to_english(q_word)
+        self.correct_answer = q_word
         other_answers = self.generate_random_ang_words(exclude=[self.correct_answer])
         answers = [self.correct_answer] + other_answers
         random.shuffle(answers)
@@ -938,17 +987,16 @@ class PracticeScreen(Screen):
 
         self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
 
-    def load_new_question_s_w_input(self):
+    def load_new_question_s_w_input(self, q_word):
         """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
-        self.rand_word_question = self.get_random_comp_word()
-        self.rand_sent = self.get_random_sent(self.rand_word_question)
+        self.rand_sent = self.get_random_sent(q_word)
         self.rand_sent_question = self.replace_word_with_blanks(self.rand_sent[0],
-                                                                self.rand_word_question)
+                                                                q_word)
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
-        self.current_word = self.translate_to_english(self.rand_word_question)
+        self.current_word = self.translate_to_english(q_word)
 
         self.input_field_s_w = TextInput(
             size_hint=(1, None),
@@ -981,6 +1029,7 @@ class PracticeScreen(Screen):
         """Подсвечивает правильный ответ."""
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
+                self.update_bd_for_word(self.main_word, 'type1')
                 btn.background_color = [0, 1, 0, 1]
             else:
                 btn.background_color = [1, 0, 0, 1]
@@ -990,6 +1039,7 @@ class PracticeScreen(Screen):
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
                 btn.background_color = [0, 1, 0, 1]
+                self.update_bd_for_word(self.main_word, 'type2')
             else:
                 btn.background_color = [1, 0, 0, 1]
             btn.disabled = True
@@ -1006,6 +1056,7 @@ class PracticeScreen(Screen):
                                      self.rand_sent_question_norm_ang.lower().strip()) > 80:
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+            self.update_bd_for_word(self.main_word, 'type4')
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
@@ -1015,24 +1066,37 @@ class PracticeScreen(Screen):
                                      self.rand_sent_question_norm_ang.lower().strip()) > 80:
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+            self.update_bd_for_word(self.main_word, 'type6')
+        else:
+            self.center_label.color = [1, 0, 0, 1]
+            self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
+
+    def show_correct_answer_input_s_audio_hard(self, ang, ru):
+        if self.calculate_similarity(self.input_field_s.text.lower().strip(),
+                                     self.rand_sent_question_norm_ang.lower().strip()) > 80:
+            self.center_label.color = [0, 1, 0, 1]
+            self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+            self.update_bd_for_word(self.main_word, 'type7')
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
 
     def show_correct_answer_input(self):
         """Подсвечивает правильный ответ."""
-        if self.input_field.text.strip().lower() == self.rand_word_question.strip().lower():
+        if self.input_field.text.strip().lower() == self.main_word.strip().lower():
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = 'Правильно!'
+            self.update_bd_for_word(self.main_word, 'type3')
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно, правильный ответ: {self.rand_word_question}'
 
     def show_correct_answer_input_s_w(self, ang, ru):
         """Подсвечивает правильный ответ."""
-        if self.input_field_s_w.text.strip().lower() == self.rand_word_question.strip().lower():
+        if self.input_field_s_w.text.strip().lower() == self.main_word.strip().lower():
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
+            self.update_bd_for_word(self.main_word, 'type5')
         else:
             self.center_label.color = [1, 0, 0, 1]
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
