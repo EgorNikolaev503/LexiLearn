@@ -717,8 +717,7 @@ class PracticeScreen(Screen):
         btn_audio.bind(
             on_release=lambda instance: self.play_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(btn_audio)
-
-        # print(self.rand_sent_question_norm_ang)
+        btn_audio.disabled = False
 
         self.center_label.text = f"Напишите предложение на слух"
 
@@ -741,10 +740,11 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
-        self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)  # Изначально кнопки невидимы
+        self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)
         self.btn_audio.bind(
             on_release=lambda instance: self.play_one_audio(self.rand_word_question, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(self.btn_audio)
+        self.btn_audio.disabled = False
 
         # print(self.rand_sent_question_norm_ang)
 
