@@ -27,8 +27,6 @@ Window.size = (432, 768)
 Window.title = 'LexiLearn'
 client = Client()
 
-filename = "comp_words.csv"
-
 
 class PressableButton(Widget):
     def __init__(self, text="", font_size=18, color=(0.2, 0.6, 0.8, 1), shadow_color=(0.1, 0.4, 0.6, 1),
@@ -146,8 +144,11 @@ class SettingsScreen(Screen):
         self.manager.current = 'main'
 
     def all_clear_event(self, *args):
-        with open("comp_words.csv", mode='w', newline='') as file:
-            pass
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+        cursor.execute('DELETE FROM words')
+        conn.commit()
+        conn.close()
 
     def on_size(self, *args):
         """Обновляет размеры фона и текстовых областей."""
@@ -484,15 +485,16 @@ class TheoryScreen(Screen):
         self.label.text_size = (self.width - 40, None)
 
     def read_csv_as_list(self):
-        """Чтение CSV файла."""
-        filename = "comp_words.csv"
-        data_list = []
-        with open(filename, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.extend(row)
-            file.close()
-        return data_list
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT word FROM words')
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return words
 
     def get_random_word_not_in_csv(self):
         """Получение случайного слова, отсутствующего в CSV."""
@@ -510,18 +512,9 @@ class TheoryScreen(Screen):
         else:
             return None
 
-    def csv_write(self, rand_word):
-        """Запись слова в CSV."""
-        filename = "comp_words.csv"
-        with open(filename, mode='a', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow([rand_word])
-            file.close()
-
     def text_load(self, *args):
         """Загрузка случайного слова и примеров предложений."""
         self.rand_word = self.get_random_word_not_in_csv()
-        self.csv_write(self.rand_word)
         self.text_ex = f'Примеры предложений:\n\n{super_dict[self.rand_word][0][0]}\n' \
                        f'{super_dict[self.rand_word][0][1]}\n\n{super_dict[self.rand_word][1][0]}\n' \
                        f'{super_dict[self.rand_word][1][1]}\n\n{super_dict[self.rand_word][2][0]}\n' \
@@ -677,15 +670,16 @@ class PracticeScreen(Screen):
             return 1
 
     def read_csv_as_list(self):
-        """Чтение CSV файла."""
-        filename = "comp_words.csv"
-        data_list = []
-        with open(filename, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.extend(row)
-            file.close()
-        return data_list
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT word FROM words')
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return words
 
     def get_random_comp_word(self):
         """Получение случайного слова."""
@@ -1186,13 +1180,16 @@ class CompWordsScreen(Screen):
         self.manager.current = 'main'
 
     def read_csv_as_list(self):
-        data_list = []
-        with open(filename, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.extend(row)
-            file.close()
-        return data_list[::-1]
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT word FROM words')
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return words
 
     def search_menu(self, screen_manager):
         if not self.manager.has_screen('comp_search_menu'):
@@ -1276,14 +1273,16 @@ class SearchMenuComp(Screen):
         self.manager.current = 'comp_words'
 
     def read_csv_as_list(self):
-        data_list = []
-        with open(filename, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.extend(row)
-            file.close()
-        print(data_list)
-        return data_list
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT word FROM words')
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return words
 
     def search_proc(self, *args):
         self.word = self.search_widget.text
@@ -1415,14 +1414,16 @@ class MainWind(App):
         self.screen_manager.current = 'all_words'
 
     def read_csv_as_list(self):
-        filename = "comp_words.csv"
-        data_list = []
-        with open(filename, mode='r', newline='') as file:
-            reader = csv.reader(file)
-            for row in reader:
-                data_list.extend(row)
-            file.close()
-        return data_list
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('SELECT word FROM words')
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return words
 
 
 if __name__ == '__main__':
