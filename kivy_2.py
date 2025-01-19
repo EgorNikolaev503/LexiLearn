@@ -27,6 +27,9 @@ Window.size = (432, 768)
 Window.title = 'LexiLearn'
 client = Client()
 
+main_font_style = "IntroDemo-BlackCAPS.otf"
+alt_font_style = "IntroDemoCond-LightCAPS.otf"
+
 
 class PressableButton(Widget):
     def __init__(self, text="", font_size=18, color=(0.2, 0.6, 0.8, 1), shadow_color=(0.1, 0.4, 0.6, 1),
@@ -62,7 +65,7 @@ class PressableButton(Widget):
             size=self.size,
             pos=self.pos,
             font_size=self.font_size,
-            font_name="IntroDemo-BlackCAPS.otf",
+            font_name=main_font_style,
             color=(1, 1, 1, 1)  # Белый текст
         )
         self.add_widget(self.label)
@@ -399,6 +402,7 @@ class TheoryScreen(Screen):
             size_hint_y=None,
             text="\nНажмите на кнопку 'Сгенирировать слово'\nчтобы мы подобрали вам слово",
             font_size=24,
+            font_name=main_font_style
         )
         self.label.bind(texture_size=self._resize_label)
 
@@ -407,6 +411,7 @@ class TheoryScreen(Screen):
             valign='top',
             size_hint_y=None,
             font_size=18,
+            font_name=main_font_style
         )
         self.label2.bind(texture_size=self._resize_label)
 
@@ -1370,7 +1375,7 @@ class MainWind(App):
         self.box2 = BoxLayout(orientation='vertical', spacing=25)
         self.box_main = BoxLayout(orientation='vertical', padding=[20], spacing=40)
 
-        self.label = Label(text='Lexi\nLearn', font_size=30, font_name="IntroDemo-BlackCAPS.otf")
+        self.label = Label(text='Lexi\nLearn', font_size=30, font_name=main_font_style)
         self.label2 = Label(halign='center', size_hint_y=0.4)
 
         self.btn = PressableButton(text='Настройки', font_size=22,
