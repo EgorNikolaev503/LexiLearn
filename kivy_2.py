@@ -21,7 +21,7 @@ from kivy.uix.widget import Widget
 from scipy.io.wavfile import read
 import sounddevice as sd
 import sqlite3
-from datetime import datetime
+from datetime import datetime, timedelta
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -36,8 +36,8 @@ class PressableButton(Widget):
         self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
         self.text = text
         self.font_size = font_size
-        self.shadow_height = 10  # Высота тени
-        self.on_release_callback = on_release_callback  # Сохраняем callback для обработки
+        self.shadow_height = 10
+        self.on_release_callback = on_release_callback
 
         # Размеры кнопки
         self.size = kwargs.get("size", (300, 100))
@@ -677,14 +677,37 @@ class PracticeScreen(Screen):
         words = [row[0] for row in cursor.fetchall()]
 
         conn.close()
-        print(words)
 
         return words
 
     def get_random_comp_word(self):
-        """Получение случайного слова."""
+
         comp_words = self.read_csv_as_list()
         return random.choice(comp_words)
+
+    def get_word_for_task(self, task_type, db_path='words.db'):
+        valid_task_columns = {f"type{i}" for i in range(1, 8)}
+        if task_type not in valid_task_columns:
+            raise ValueError(
+                f"Неверное название столбца: {task_type}. Доступные столбцы: {', '.join(valid_task_columns)}")
+
+        conn = sqlite3.connect(db_path)
+        cursor = conn.cursor()
+
+        one_week_ago = datetime.now() - timedelta(weeks=1)
+
+        cursor.execute(f'''
+            SELECT word 
+            FROM words
+            WHERE {task_type} IS NULL OR {task_type} < ?
+        ''', (one_week_ago,))
+
+        words = [row[0] for row in cursor.fetchall()]
+
+        conn.close()
+        print(words)
+
+        return random.choice(words)
 
     def go_back(self, *args):
         """Возврат на предыдущий экран."""
@@ -833,27 +856,32 @@ class PracticeScreen(Screen):
 
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
                                       self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
-            self.main_word = self.get_random_comp_word()
-
             if ch == 0:
+                self.main_word = self.get_word_for_task('type1')
                 self.type_question = 0
                 self.load_new_question_w_btn(self.main_word)
             elif ch == 1:
+                self.main_word = self.get_word_for_task('type2')
                 self.type_question = 1
                 self.load_new_question_s_btn(self.main_word)
             elif ch == 2:
+                self.main_word = self.get_word_for_task('type3')
                 self.type_question = 2
                 self.load_new_question_input(self.main_word)
             elif ch == 3:
+                self.main_word = self.get_word_for_task('type4')
                 self.type_question = 3
                 self.load_new_question_s_input(self.main_word)
             elif ch == 4:
+                self.main_word = self.get_word_for_task('type5')
                 self.type_question = 4
                 self.load_new_question_s_w_input(self.main_word)
             elif ch == 5:
+                self.main_word = self.get_word_for_task('type6')
                 self.type_question = 5
                 self.load_new_question_s_input_audio(self.main_word)
             elif ch == 6:
+                self.main_word = self.get_word_for_task('type7')
                 self.type_question = 6
                 self.load_new_question_s_input_audio_hard(self.main_word)
 
@@ -889,27 +917,33 @@ class PracticeScreen(Screen):
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
                                       self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
             self.center_label.color = [1, 1, 1, 1]
-            self.main_word = self.get_random_comp_word()
 
             if ch == 0:
+                self.main_word = self.get_word_for_task('type1')
                 self.type_question = 0
                 self.load_new_question_w_btn(self.main_word)
             elif ch == 1:
+                self.main_word = self.get_word_for_task('type2')
                 self.type_question = 1
                 self.load_new_question_s_btn(self.main_word)
             elif ch == 2:
+                self.main_word = self.get_word_for_task('type3')
                 self.type_question = 2
                 self.load_new_question_input(self.main_word)
             elif ch == 3:
+                self.main_word = self.get_word_for_task('type4')
                 self.type_question = 3
                 self.load_new_question_s_input(self.main_word)
             elif ch == 4:
+                self.main_word = self.get_word_for_task('type5')
                 self.type_question = 4
                 self.load_new_question_s_w_input(self.main_word)
             elif ch == 5:
+                self.main_word = self.get_word_for_task('type6')
                 self.type_question = 5
                 self.load_new_question_s_input_audio(self.main_word)
             elif ch == 6:
+                self.main_word = self.get_word_for_task('type7')
                 self.type_question = 6
                 self.load_new_question_s_input_audio_hard(self.main_word)
 
@@ -1083,7 +1117,7 @@ class PracticeScreen(Screen):
             self.update_bd_for_word(self.main_word, 'type3')
         else:
             self.center_label.color = [1, 0, 0, 1]
-            self.center_label.text = f'Неправильно, правильный ответ: {self.rand_word_question}'
+            self.center_label.text = f'Неправильно, правильный ответ: {self.main_word}'
 
     def show_correct_answer_input_s_w(self, ang, ru):
         """Подсвечивает правильный ответ."""
