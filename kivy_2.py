@@ -361,8 +361,25 @@ class WordShow(Screen):
 
 
 class ImageButton(ButtonBehavior, Image):
+    def __init__(self, **kwargs):
+        self.text = kwargs.pop('text', '')
+        self.word = kwargs.pop('word', '')
+        super().__init__(**kwargs)
+
+    def find_sentence_index(self, word, sentence):
+        if word in super_dict:
+            for index, pair in enumerate(super_dict[word], start=1):
+                if pair[0] == sentence:
+                    return index
+        return None
+
     def on_press(self):
-        print("Изображение нажато!")
+        wav_file = f'G:\Lexi_voices\{self.word}_{self.find_sentence_index(self.word, self.text)}.wav'
+
+        sample_rate, audio_data = read(wav_file)
+
+        sd.play(audio_data, samplerate=sample_rate)
+        sd.wait()
 
 
 class TheoryScreen(Screen):
@@ -370,11 +387,8 @@ class TheoryScreen(Screen):
         super(TheoryScreen, self).__init__(**kwargs)
 
         # Кнопка "Назад"
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
+        self.back_button = PressableButton(text="Назад")
         self.back_button.bind(on_release=self.go_back)
-
-        # Кнопка "Озвучка слов"
-        self.vol_button = Button(text="Озвучка слов", size_hint=(None, None), size=(150, 75))
 
         # Кнопка "Сгенерировать слово"
         self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
@@ -389,8 +403,8 @@ class TheoryScreen(Screen):
                                               font_size=16)
 
         # Верхняя панель
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
-        self.toolbar.add_widget(self.vol_button)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=60)
+        self.toolbar.add_widget(Label())
         self.toolbar.add_widget(Label())
         self.toolbar.add_widget(self.back_button)
 
@@ -526,13 +540,6 @@ class TheoryScreen(Screen):
         for i in range(3):
             horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10, height=120)
 
-            # Добавляем изображение, которое можно нажимать
-            image = ImageButton(
-                source="audio.png",  # Указываем путь к изображению
-                size_hint=(None, None),
-                size=(50, 50)
-            )
-
             # Блок текста
             label = Label(
                 text=f'{super_dict[self.rand_word][i][0]}\n------------------\n' \
@@ -551,7 +558,15 @@ class TheoryScreen(Screen):
                 texture_size=lambda s, t: s.setter('height')(s, t[1])
             )
 
-            # Добавляем элементы в горизонтальный контейнер
+            image = ImageButton(
+                source="audio.png",  # Указываем путь к изображению
+                size_hint=(None, None),
+                size=(50, 50),
+                pos_hint={'center_y': 0.5},
+                text=f'{super_dict[self.rand_word][i][0]}',
+                word=self.rand_word
+            )
+
             horizontal_container.add_widget(image)
             horizontal_container.add_widget(label)
 
