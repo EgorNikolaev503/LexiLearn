@@ -518,6 +518,11 @@ class TheoryScreen(Screen):
     def text_load(self, *args):
         self.rand_word = self.get_random_word_not_in_csv()
 
+        self.vertical_layout.clear_widgets()
+
+        self.label.text = f"Ваше слово {self.rand_word}"
+        self.vertical_layout.add_widget(self.label)
+
         for i in range(3):
             horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10, height=120)
 
@@ -552,8 +557,6 @@ class TheoryScreen(Screen):
 
             # Добавляем горизонтальный контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
-
-        self.label.text = f"Ваше слово {self.rand_word}"
         self.next_button.text = 'Следущее слово'
         self.add_word_to_database(self.rand_word)
 
