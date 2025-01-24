@@ -387,8 +387,7 @@ class TheoryScreen(Screen):
         super(TheoryScreen, self).__init__(**kwargs)
 
         # Кнопка "Назад"
-        self.back_button = PressableButton(text="Назад")
-        self.back_button.bind(on_release=self.go_back)
+        self.back_button = PressableButton(text="Назад", on_release_callback=lambda: self.go_back())
 
         # Кнопка "Сгенерировать слово"
         self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
