@@ -23,6 +23,8 @@ import sounddevice as sd
 import sqlite3
 from datetime import datetime, timedelta
 from kivy.metrics import dp, sp
+from kivy.uix.image import Image
+from kivy.uix.behaviors import ButtonBehavior
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -358,6 +360,11 @@ class WordShow(Screen):
         self.label2.text_size = (self.width - 40, None)
 
 
+class ImageButton(ButtonBehavior, Image):
+    def on_press(self):
+        print("Изображение нажато!")
+
+
 class TheoryScreen(Screen):
     def __init__(self, **kwargs):
         super(TheoryScreen, self).__init__(**kwargs)
@@ -394,10 +401,6 @@ class TheoryScreen(Screen):
         # Прокручиваемая область
         self.scroll_view = ScrollView(size_hint=(1, 1))
 
-        # Лейаут для текста внутри ScrollView
-        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[10], spacing=10)
-        self.text_layout.bind(minimum_height=self.text_layout.setter('height'))
-
         # Текстовые метки
         self.label = Label(
             halign='center',
@@ -409,24 +412,17 @@ class TheoryScreen(Screen):
         )
         self.label.bind(texture_size=self._resize_label)
 
-        self.label2 = Label(
-            halign='center',
-            valign='top',
-            size_hint_y=None,
-            font_size=sp(18),
-            font_name=main_font_style
-        )
-        self.label2.bind(texture_size=self._resize_label)
-
-        # Добавляем метки в текстовый лейаут
-        self.text_layout.add_widget(self.label)
-        self.text_layout.add_widget(self.label2)
-
         # Добавляем текстовый лейаут в прокручиваемую область
-        self.scroll_view.add_widget(self.text_layout)
 
         # Основной лейаут
         self.main_layout = BoxLayout(orientation='vertical', padding=[20], spacing=20)
+
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
+
+        self.vertical_layout.add_widget(self.label)
+
+        self.scroll_view.add_widget(self.vertical_layout)
 
         # Лейаут для дополнительных кнопок
         self.func_layout2 = BoxLayout(size_hint_y=None, height=60, spacing=14)
@@ -489,7 +485,6 @@ class TheoryScreen(Screen):
 
     def _update_text_sizes(self, *args):
         """Обновляет размеры текстовых областей."""
-        self.label2.text_size = (self.width - 40, None)
         self.label.text_size = (self.width - 40, None)
 
     def read_csv_as_list(self):
@@ -521,14 +516,44 @@ class TheoryScreen(Screen):
             return None
 
     def text_load(self, *args):
-        """Загрузка случайного слова и примеров предложений."""
         self.rand_word = self.get_random_word_not_in_csv()
-        self.text_ex = f'Примеры предложений:\n\n{super_dict[self.rand_word][0][0]}\n------------------\n' \
-                       f'{super_dict[self.rand_word][0][1]}\n\n{super_dict[self.rand_word][1][0]}\n------------------\n' \
-                       f'{super_dict[self.rand_word][1][1]}\n\n{super_dict[self.rand_word][2][0]}\n------------------\n' \
-                       f'{super_dict[self.rand_word][2][1]}\n\n'
-        self.label.text = f"Ваше слово {self.rand_word}\n\n"
-        self.label2.text = self.text_ex
+
+        for i in range(3):
+            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10, height=120)
+
+            # Добавляем изображение, которое можно нажимать
+            image = ImageButton(
+                source="audio.png",  # Указываем путь к изображению
+                size_hint=(None, None),
+                size=(50, 50)
+            )
+
+            # Блок текста
+            label = Label(
+                text=f'{super_dict[self.rand_word][i][0]}\n------------------\n' \
+                     f'{super_dict[self.rand_word][i][1]}',
+                size_hint=(1, None),
+                font_size=18,  # Устанавливаем увеличенный шрифт
+                halign="left",  # Выравнивание текста по левому краю
+                valign="middle",  # Вертикальное выравнивание
+                text_size=(0, None),
+                font_name="IntroDemo-BlackCAPS.otf"
+            )
+
+            # Привязываем высоту текста к лейблу
+            label.bind(
+                width=lambda s, w: s.setter('text_size')(s, (w, None)),
+                texture_size=lambda s, t: s.setter('height')(s, t[1])
+            )
+
+            # Добавляем элементы в горизонтальный контейнер
+            horizontal_container.add_widget(image)
+            horizontal_container.add_widget(label)
+
+            # Добавляем горизонтальный контейнер в вертикальный список
+            self.vertical_layout.add_widget(horizontal_container)
+
+        self.label.text = f"Ваше слово {self.rand_word}"
         self.next_button.text = 'Следущее слово'
         self.add_word_to_database(self.rand_word)
 
@@ -556,7 +581,6 @@ class TheoryScreen(Screen):
         """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
-        self.label2.text_size = (self.width - 40, None)
 
 
 class PracticeScreen(Screen):
