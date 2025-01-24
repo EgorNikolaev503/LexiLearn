@@ -523,9 +523,9 @@ class TheoryScreen(Screen):
     def text_load(self, *args):
         """Загрузка случайного слова и примеров предложений."""
         self.rand_word = self.get_random_word_not_in_csv()
-        self.text_ex = f'Примеры предложений:\n\n{super_dict[self.rand_word][0][0]}\n' \
-                       f'{super_dict[self.rand_word][0][1]}\n\n{super_dict[self.rand_word][1][0]}\n' \
-                       f'{super_dict[self.rand_word][1][1]}\n\n{super_dict[self.rand_word][2][0]}\n' \
+        self.text_ex = f'Примеры предложений:\n\n{super_dict[self.rand_word][0][0]}\n------------------\n' \
+                       f'{super_dict[self.rand_word][0][1]}\n\n{super_dict[self.rand_word][1][0]}\n------------------\n' \
+                       f'{super_dict[self.rand_word][1][1]}\n\n{super_dict[self.rand_word][2][0]}\n------------------\n' \
                        f'{super_dict[self.rand_word][2][1]}\n\n'
         self.label.text = f"Ваше слово {self.rand_word}\n\n"
         self.label2.text = self.text_ex
