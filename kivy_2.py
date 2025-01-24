@@ -22,28 +22,32 @@ from scipy.io.wavfile import read
 import sounddevice as sd
 import sqlite3
 from datetime import datetime, timedelta
+from kivy.metrics import dp, sp
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
 client = Client()
+
+# main_font_style = "arial_black.ttf"
 
 main_font_style = "IntroDemo-BlackCAPS.otf"
 alt_font_style = "IntroDemoCond-LightCAPS.otf"
 
 
 class PressableButton(Widget):
-    def __init__(self, text="", font_size=18, color=(0.2, 0.6, 0.8, 1), shadow_color=(0.1, 0.4, 0.6, 1),
+    def __init__(self, text="", shadow_height=6, font_size=18, size=(300, 100), color=(0.2, 0.6, 0.8, 1),
+                 shadow_color=(0.1, 0.4, 0.6, 1),
                  on_release_callback=None, **kwargs):
         super().__init__(**kwargs)
         self.color = color if len(color) == 4 else self.rgb_to_kivy_color(color)
         self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
         self.text = text
         self.font_size = font_size
-        self.shadow_height = 10
+        self.shadow_height = shadow_height
         self.on_release_callback = on_release_callback
 
         # Размеры кнопки
-        self.size = kwargs.get("size", (300, 100))
+        self.size = kwargs.get("size", size)
         self.pos = kwargs.get("pos", (100, 200))
 
         # Рисуем кнопку и тень
@@ -366,15 +370,16 @@ class TheoryScreen(Screen):
         self.vol_button = Button(text="Озвучка слов", size_hint=(None, None), size=(150, 75))
 
         # Кнопка "Сгенерировать слово"
-        self.next_button = Button(text="Сгенирировать слово", size_hint=(None, None), size=(200, 75))
+        self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
+                                           on_release_callback=lambda: self.text_load())
         self.next_button.bind(on_release=self.text_load)
 
         # Кнопка "Добавить в конспект"
-        self.jorn_button = Button(text="Добавить в конспект", size_hint=(1, None), height=60)
+        self.jorn_button = PressableButton(text="в 'мои' слова", font_size=16)
 
         # Кнопка "Больше примеров"
-        self.more_ex_button = Button(text="Больше примеров", size_hint=(1, None), height=60)
-        self.more_ex_button.bind(on_release=self.more_w)
+        self.more_ex_button = PressableButton(text="Ещё примеры", on_release_callback=lambda: self.more_w(),
+                                              font_size=16)
 
         # Верхняя панель
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
@@ -383,10 +388,8 @@ class TheoryScreen(Screen):
         self.toolbar.add_widget(self.back_button)
 
         # Нижняя панель
-        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=100)
-        self.toolbar2.add_widget(Label())
+        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=60)
         self.toolbar2.add_widget(self.next_button)
-        self.toolbar2.add_widget(Label())
 
         # Прокручиваемая область
         self.scroll_view = ScrollView(size_hint=(1, 1))
@@ -401,7 +404,7 @@ class TheoryScreen(Screen):
             valign='middle',
             size_hint_y=None,
             text="\nНажмите на кнопку 'Сгенирировать слово'\nчтобы мы подобрали вам слово",
-            font_size=24,
+            font_size=sp(24),
             font_name=main_font_style
         )
         self.label.bind(texture_size=self._resize_label)
@@ -410,7 +413,7 @@ class TheoryScreen(Screen):
             halign='center',
             valign='top',
             size_hint_y=None,
-            font_size=18,
+            font_size=sp(18),
             font_name=main_font_style
         )
         self.label2.bind(texture_size=self._resize_label)
@@ -423,10 +426,10 @@ class TheoryScreen(Screen):
         self.scroll_view.add_widget(self.text_layout)
 
         # Основной лейаут
-        self.main_layout = BoxLayout(orientation='vertical', padding=[20])
+        self.main_layout = BoxLayout(orientation='vertical', padding=[20], spacing=20)
 
         # Лейаут для дополнительных кнопок
-        self.func_layout2 = BoxLayout(size_hint_y=None, height=75)
+        self.func_layout2 = BoxLayout(size_hint_y=None, height=60, spacing=14)
         self.func_layout2.add_widget(self.jorn_button)
         self.func_layout2.add_widget(self.more_ex_button)
 
@@ -524,7 +527,7 @@ class TheoryScreen(Screen):
                        f'{super_dict[self.rand_word][0][1]}\n\n{super_dict[self.rand_word][1][0]}\n' \
                        f'{super_dict[self.rand_word][1][1]}\n\n{super_dict[self.rand_word][2][0]}\n' \
                        f'{super_dict[self.rand_word][2][1]}\n\n'
-        self.label.text = f"\n\nВаше слово {self.rand_word}\n\n"
+        self.label.text = f"Ваше слово {self.rand_word}\n\n"
         self.label2.text = self.text_ex
         self.next_button.text = 'Следущее слово'
         self.add_word_to_database(self.rand_word)
@@ -1380,13 +1383,13 @@ class MainWind(App):
 
         self.btn = PressableButton(text='Настройки', font_size=22,
                                    on_release_callback=lambda: self.open_settings(self.screen_manager))
-        self.btn3 = PressableButton(text="ТЕОРИЯ", font_size=28,
+        self.btn3 = PressableButton(text="ТЕОРИЯ", font_size=22,
                                     on_release_callback=lambda: self.open_theory(self.screen_manager))
-        self.btn4 = PressableButton(text='ПРАКТИКА', font_size=28,
+        self.btn4 = PressableButton(text='ПРАКТИКА', font_size=22,
                                     on_release_callback=lambda: self.open_practice(self.screen_manager))
-        self.btn5 = PressableButton(text='БАНК ИЗУЧЕНЫХ СЛОВ', font_size=28,
+        self.btn5 = PressableButton(text='БАНК ИЗУЧЕНЫХ СЛОВ', font_size=22,
                                     on_release_callback=lambda: self.open_comp_words_bank(self.screen_manager))
-        self.btn6 = PressableButton(text='ОТКРЫТЫЙ БАНК СЛОВ', font_size=28,
+        self.btn6 = PressableButton(text='ОТКРЫТЫЙ БАНК СЛОВ', font_size=22,
                                     on_release_callback=lambda: self.open_all_words_bank(self.screen_manager))
 
         self.box1.add_widget(self.label)
