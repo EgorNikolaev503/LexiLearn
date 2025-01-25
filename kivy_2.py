@@ -25,6 +25,7 @@ from datetime import datetime, timedelta
 from kivy.metrics import dp, sp
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
+from kivy.clock import Clock
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -536,12 +537,22 @@ class TheoryScreen(Screen):
         self.label.text = f"Ваше слово {self.rand_word}"
         self.vertical_layout.add_widget(self.label)
 
+        def update_container_height(horizontal_container):
+            """Обновляет высоту контейнера на основе максимальной высоты дочерних элементов."""
+            max_height = max(child.height for child in horizontal_container.children)
+            horizontal_container.height = max_height + 20  # Добавляем небольшой отступ
+            print(f"Updated container height: {horizontal_container.height}")
+
         for i in range(3):
-            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10, height=120)
+            horizontal_container = BoxLayout(
+                orientation="horizontal",
+                size_hint=(1, None),  # Контейнер не растягивается по высоте
+                spacing=10
+            )
 
             # Блок текста
             label = Label(
-                text=f'{super_dict[self.rand_word][i][0]}\n------------------\n' \
+                text=f'{super_dict[self.rand_word][i][0]}\n------------------\n'
                      f'{super_dict[self.rand_word][i][1]}',
                 size_hint=(1, None),
                 font_size=18,  # Устанавливаем увеличенный шрифт
@@ -557,6 +568,7 @@ class TheoryScreen(Screen):
                 texture_size=lambda s, t: s.setter('height')(s, t[1])
             )
 
+            # Добавляем кнопку
             image = ImageButton(
                 source="audio.png",  # Указываем путь к изображению
                 size_hint=(None, None),
@@ -569,8 +581,22 @@ class TheoryScreen(Screen):
             horizontal_container.add_widget(image)
             horizontal_container.add_widget(label)
 
+            # Откладываем пересчет высоты контейнера
+            Clock.schedule_once(lambda dt: update_container_height(horizontal_container))
+
             # Добавляем горизонтальный контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
+
+        # Принудительно пересчитываем размеры всех контейнеров после добавления
+        def recalculate_all_heights(*_):
+            for child in self.vertical_layout.children:
+                if isinstance(child, BoxLayout):
+                    max_height = max(grandchild.height for grandchild in child.children)
+                    child.height = max_height + 20
+                    print(f"Recalculated container height: {child.height}")
+
+        Clock.schedule_once(lambda dt: recalculate_all_heights())
+
         self.next_button.text = 'Следущее слово'
         self.add_word_to_database(self.rand_word)
 
