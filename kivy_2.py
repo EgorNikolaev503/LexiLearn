@@ -383,12 +383,25 @@ class ImageButton(ButtonBehavior, Image):
         sd.wait()
 
 
+class CloseButton(ButtonBehavior, Image):
+    def __init__(self, on_close_callback, **kwargs):
+        super().__init__(**kwargs)
+        self.source = "Chess_xxt45.svg.png"
+        self.on_close_callback = on_close_callback
+
+    def on_press(self):
+        if self.on_close_callback:
+            self.on_close_callback()
+
+
 class TheoryScreen(Screen):
     def __init__(self, **kwargs):
         super(TheoryScreen, self).__init__(**kwargs)
 
-        # Кнопка "Назад"
-        self.back_button = PressableButton(text="Назад", on_release_callback=lambda: self.go_back())
+        self.close_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(20, 20))
+
+        # # Кнопка "Назад"
+        # self.back_button = PressableButton(text="Назад", on_release_callback=lambda: self.go_back())
 
         # Кнопка "Сгенерировать слово"
         self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
@@ -403,10 +416,8 @@ class TheoryScreen(Screen):
                                               font_size=16)
 
         # Верхняя панель
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=60)
-        self.toolbar.add_widget(Label())
-        self.toolbar.add_widget(Label())
-        self.toolbar.add_widget(self.back_button)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=20)
+        self.toolbar.add_widget(self.close_button)
 
         # Нижняя панель
         self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=60)
@@ -420,7 +431,7 @@ class TheoryScreen(Screen):
             halign='center',
             valign='middle',
             size_hint_y=None,
-            text="\nНажмите на кнопку 'Сгенирировать слово'\nчтобы мы подобрали вам слово",
+            text="Нажмите на кнопку 'Сгенирировать слово'\nчтобы мы подобрали вам слово",
             font_size=sp(24),
             font_name=main_font_style
         )
