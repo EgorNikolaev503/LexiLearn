@@ -272,93 +272,100 @@ class AllWordsScreen(Screen):
 
 
 class WordShow(Screen):
-    def __init__(self, word, **kwargs):
+    def __init__(self, **kwargs):
         super(WordShow, self).__init__(**kwargs)
 
-        # Кнопка "Назад"
+        # Верхняя панель с кнопкой "Назад"
         self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
         self.back_button.bind(on_release=self.go_back)
 
-        # Заголовок с названием слова
-        self.label = Label(
-            halign='center',
-            valign='middle',
-            size_hint_y=None,
-            text=f"Ваше слово: {word}",
-            font_size=24,  # Увеличение шрифта заголовка
-        )
-        self.label.bind(texture_size=self._resize_label)
-
-        # Виджет для примеров предложений
-        self.label2 = Label(
-            halign='center',
-            valign='top',
-            size_hint_y=None,
-            text_size=(self.width - 40, None),  # Автоматический перенос текста
-            font_size=18,  # Размер шрифта для текста примеров
-        )
-        self.label2.bind(texture_size=self._resize_label)
-
-        # Прокручиваемая область для длинного текста
-        self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[10])
-        self.text_layout.bind(minimum_height=self.text_layout.setter('height'))
-
-        self.text_layout.add_widget(self.label)  # Добавляем заголовок
-        self.text_layout.add_widget(self.label2)  # Добавляем примеры
-        self.scroll_view.add_widget(self.text_layout)
-
-        # Верхняя панель
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
-        self.toolbar.add_widget(Label())
+        self.toolbar.add_widget(Label())  # Заполнитель
         self.toolbar.add_widget(self.back_button)
 
-        # Основной лейаут
+        # Прокручиваемая область (внутри ScrollView)
+        self.scroll_view = ScrollView(size_hint=(1, 1))
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
+        self.scroll_view.add_widget(self.vertical_layout)
+
+        # Основной лейаут экрана
         self.layout = BoxLayout(orientation='vertical', padding=[20])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.scroll_view)
         self.add_widget(self.layout)
-
-        # Обновляем содержимое
-        self.update_content(word)
 
         # Цвет фона
         with self.canvas.before:
             self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
-    def _resize_label(self, instance, texture_size):
-        """Динамически изменяет высоту виджета в зависимости от его содержания."""
-        instance.height = instance.texture_size[1]
-        instance.size_hint_y = None
-
     def update_content(self, word):
-        """Обновляет содержимое для нового слова."""
-        self.label.text = f"\n\nВаше слово: {word}\n\n"
-        self.label2.text = self._get_examples(word)
+        """Обновляет экран новым словом и примерами."""
+        self.vertical_layout.clear_widgets()  # Очищаем старые данные
 
-    def _get_examples(self, word):
-        """Формирует текст с примерами предложений для слова."""
+        # Заголовок слова (теперь внутри прокрутки!)
+        label = Label(
+            text=f"\nВаше слово: {word}\n",
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)  # Добавляем его в общий список!
+
+        # Добавляем примеры предложений
         examples = super_dict.get(word, [])
         if not examples:
-            return "Примеры предложений отсутствуют."
+            self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=18))
+            return
 
-        # Форматирование примеров предложений
-        text_ex = "Примеры предложений:\n\n"
-        for example_pair in examples:
-            text_ex += f"{example_pair[0]}\n{example_pair[1]}\n\n"
-        return text_ex
+        for i in range(min(3, len(examples))):
+            example_pair = examples[i]
+
+            # Контейнер с кнопкой и текстом
+            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10)
+
+            # Текст примера
+            example_label = Label(
+                text=f'{example_pair[0]}\n------------------\n{example_pair[1]}',
+                size_hint=(1, None),
+                font_size=18,
+                halign="left",
+                valign="middle",
+                text_size=(0, None),
+                font_name="IntroDemo-BlackCAPS.otf"
+            )
+            example_label.bind(
+                width=lambda s, w: s.setter('text_size')(s, (w, None)),
+                texture_size=lambda s, t: s.setter('height')(s, t[1])
+            )
+
+            # Кнопка аудио
+            image = ImageButton(
+                source="audio.png",
+                size_hint=(None, None),
+                size=(50, 50),
+                pos_hint={'center_y': 0.5},
+                text=example_pair[0],
+                word=word
+            )
+
+            horizontal_container.add_widget(image)
+            horizontal_container.add_widget(example_label)
+            self.vertical_layout.add_widget(horizontal_container)
+
+    def _resize_label(self, instance, texture_size):
+        """Динамически изменяет высоту текста."""
+        instance.height = texture_size[1]
 
     def go_back(self, *args):
         """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_words'
 
-    def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
-        self.rect.size = self.size
-        self.rect.pos = self.pos
-        self.label2.text_size = (self.width - 40, None)
 
 
 class ImageButton(ButtonBehavior, Image):
@@ -1319,13 +1326,19 @@ class CompWordsScreen(Screen):
         self.manager.current = 'comp_search_menu'
 
     def word_show(self, screen_manager, word):
-        if not self.manager.has_screen('word_show_window'):
-            self.word_show_window = WordShow(word, name='word_show_window')
-            self.manager.add_widget(self.word_show_window)
+        if not screen_manager.has_screen('word_show_window'):
+            print("Создаём WordShow...")
+            word_show_window = WordShow(name='word_show_window')
+            screen_manager.add_widget(word_show_window)
+        else:
+            print("WordShow уже создан.")
 
-        self.manager.get_screen('word_show_window').update_content(word)
-        self.manager.transition = FadeTransition(duration=0.20)
-        self.manager.current = 'word_show_window'
+        screen = screen_manager.get_screen('word_show_window')
+        print(dir(screen))  # Проверить, какие методы есть у объекта
+        screen.update_content(word)
+
+        screen_manager.transition = FadeTransition(duration=0.20)
+        screen_manager.current = 'word_show_window'
 
     def on_size(self, *args):
         """Обновляет размеры фона и текстовых областей."""
