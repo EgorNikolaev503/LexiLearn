@@ -283,7 +283,7 @@ class WordShow(Screen):
         self.toolbar.add_widget(Label())  # Заполнитель
         self.toolbar.add_widget(self.back_button)
 
-        # Прокручиваемая область (внутри ScrollView)
+        # Прокручиваемая область (ScrollView)
         self.scroll_view = ScrollView(size_hint=(1, 1))
         self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
         self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
@@ -304,7 +304,7 @@ class WordShow(Screen):
         """Обновляет экран новым словом и примерами."""
         self.vertical_layout.clear_widgets()  # Очищаем старые данные
 
-        # Заголовок слова (теперь внутри прокрутки!)
+        # Заголовок (внутри прокрутки!)
         label = Label(
             text=f"\nВаше слово: {word}\n",
             font_size=sp(24),
@@ -314,7 +314,7 @@ class WordShow(Screen):
             font_name=main_font_style
         )
         label.bind(texture_size=self._resize_label)
-        self.vertical_layout.add_widget(label)  # Добавляем его в общий список!
+        self.vertical_layout.add_widget(label)
 
         # Добавляем примеры предложений
         examples = super_dict.get(word, [])
@@ -355,7 +355,29 @@ class WordShow(Screen):
 
             horizontal_container.add_widget(image)
             horizontal_container.add_widget(example_label)
+
+            # Откладываем пересчет высоты контейнера
+            Clock.schedule_once(lambda dt: self.update_container_height(horizontal_container))
+
+            # Добавляем горизонтальный контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
+
+        # Принудительно пересчитываем размеры всех контейнеров после добавления
+        Clock.schedule_once(lambda dt: self.recalculate_all_heights())
+
+    def update_container_height(self, horizontal_container):
+        """Обновляет высоту контейнера на основе максимальной высоты дочерних элементов."""
+        max_height = max(child.height for child in horizontal_container.children)
+        horizontal_container.height = max_height + 20  # Отступ
+        print(f"Updated container height: {horizontal_container.height}")
+
+    def recalculate_all_heights(self, *_):
+        """Пересчитывает размеры всех контейнеров после их добавления."""
+        for child in self.vertical_layout.children:
+            if isinstance(child, BoxLayout):
+                max_height = max(grandchild.height for grandchild in child.children)
+                child.height = max_height + 20
+                print(f"Recalculated container height: {child.height}")
 
     def _resize_label(self, instance, texture_size):
         """Динамически изменяет высоту текста."""
@@ -365,7 +387,6 @@ class WordShow(Screen):
         """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_words'
-
 
 
 class ImageButton(ButtonBehavior, Image):
