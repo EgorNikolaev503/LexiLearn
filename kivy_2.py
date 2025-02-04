@@ -388,6 +388,11 @@ class WordShow(Screen):
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_words'
 
+    def on_size(self, *args):
+        """Обновляет размеры фона и текстовых областей."""
+        self.rect.size = self.size
+        self.rect.pos = self.pos
+
 
 class ImageButton(ButtonBehavior, Image):
     def __init__(self, **kwargs):
