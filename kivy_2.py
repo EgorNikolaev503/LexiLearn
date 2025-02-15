@@ -1359,12 +1359,13 @@ class CompWordsScreen(Screen):
         conn = sqlite3.connect('words.db')
         cursor = conn.cursor()
 
-        cursor.execute('SELECT word FROM words')
+        cursor.execute('''
+                SELECT word FROM words
+                WHERE is_my = 1
+            ''')
+
         words = [row[0] for row in cursor.fetchall()]
-
         conn.close()
-        print(words)
-
         return words
 
     def search_menu(self, screen_manager):
