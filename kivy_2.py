@@ -1459,12 +1459,13 @@ class SearchMenuComp(Screen):
         conn = sqlite3.connect('words.db')
         cursor = conn.cursor()
 
-        cursor.execute('SELECT word FROM words')
+        cursor.execute('''
+                        SELECT word FROM words
+                        WHERE is_my = 1
+                    ''')
+
         words = [row[0] for row in cursor.fetchall()]
-
         conn.close()
-        print(words)
-
         return words
 
     def search_proc(self, *args):
@@ -1528,9 +1529,9 @@ class MainWind(App):
                                     on_release_callback=lambda: self.open_theory(self.screen_manager))
         self.btn4 = PressableButton(text='ПРАКТИКА', font_size=22,
                                     on_release_callback=lambda: self.open_practice(self.screen_manager))
-        self.btn5 = PressableButton(text='БАНК ИЗУЧЕНЫХ СЛОВ', font_size=22,
+        self.btn5 = PressableButton(text='"МОИ" СЛОВА', font_size=22,
                                     on_release_callback=lambda: self.open_comp_words_bank(self.screen_manager))
-        self.btn6 = PressableButton(text='ОТКРЫТЫЙ БАНК СЛОВ', font_size=22,
+        self.btn6 = PressableButton(text='БАНК ИЗУЧЕННЫХ СЛОВ', font_size=22,
                                     on_release_callback=lambda: self.open_all_words_bank(self.screen_manager))
 
         self.box1.add_widget(self.label)
