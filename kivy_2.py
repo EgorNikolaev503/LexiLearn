@@ -125,21 +125,21 @@ class SettingsScreen(Screen):
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
-        self.all_clear = Button(text="Сброс прогресса", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
+        self.all_clear = Button(text="Сброс прогресса", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
         self.all_clear.bind(on_release=self.all_clear_event)
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
         self.toolbar.add_widget(Label())
         self.toolbar.add_widget(self.back_button)
 
-        self.box_for_clear = BoxLayout(orientation='horizontal', padding=[20])
+        self.box_for_clear = BoxLayout(orientation='horizontal', padding=[dp(20)])
         self.box_for_clear.add_widget(Label())
         self.box_for_clear.add_widget(self.all_clear)
         self.box_for_clear.add_widget(Label())
 
-        self.layout = BoxLayout(orientation='vertical', padding=[20])
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.box_for_clear)
         self.layout.add_widget(Label())
@@ -171,15 +171,15 @@ class AllWordsScreen(Screen):
         super(AllWordsScreen, self).__init__(**kwargs)
 
         # Кнопка "Назад"
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
 
         # Кнопка "Поиск"
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(150, 75))
+        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
         self.search_button.bind(on_release=self.search_proc)
 
         # Виджет для поиска
-        self.search_widget = TextInput(size_hint_y=None, height=75)
+        self.search_widget = TextInput(size_hint_y=None, height=dp(75))
 
         # Заголовок с названием слова
         self.label = Label(
@@ -187,7 +187,7 @@ class AllWordsScreen(Screen):
             valign='middle',
             size_hint_y=None,
             text="\n\nВведите слово для поиска\n\n",
-            font_size=24,
+            font_size=sp(24),
         )
         self.label.bind(texture_size=self._resize_label)
 
@@ -196,28 +196,28 @@ class AllWordsScreen(Screen):
             halign='center',
             valign='top',
             size_hint_y=None,
-            font_size=18,
+            font_size=sp(18),
         )
         self.label2.bind(texture_size=self._resize_label)
 
         self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[10], spacing=10)
+        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[dp(10)], spacing=dp(10))
         self.text_layout.bind(minimum_height=self.text_layout.setter('height'))
 
         self.text_layout.add_widget(self.label)
         self.text_layout.add_widget(self.label2)
         self.scroll_view.add_widget(self.text_layout)
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
         self.toolbar.add_widget(self.search_widget)
         self.toolbar.add_widget(self.back_button)
 
-        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
         self.toolbar2.add_widget(Label())
         self.toolbar2.add_widget(self.search_button)
         self.toolbar2.add_widget(Label())
 
-        self.layout = BoxLayout(orientation='vertical', padding=[20])
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.scroll_view)
         self.layout.add_widget(self.toolbar2)
@@ -276,21 +276,21 @@ class WordShow(Screen):
         super(WordShow, self).__init__(**kwargs)
 
         # Верхняя панель с кнопкой "Назад"
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
         self.toolbar.add_widget(Label())  # Заполнитель
         self.toolbar.add_widget(self.back_button)
 
         # Прокручиваемая область (ScrollView)
         self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
         self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
         self.scroll_view.add_widget(self.vertical_layout)
 
         # Основной лейаут экрана
-        self.layout = BoxLayout(orientation='vertical', padding=[20])
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.scroll_view)
         self.add_widget(self.layout)
@@ -319,20 +319,20 @@ class WordShow(Screen):
         # Добавляем примеры предложений
         examples = super_dict.get(word, [])
         if not examples:
-            self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=18))
+            self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=sp(18)))
             return
 
         for i in range(min(3, len(examples))):
             example_pair = examples[i]
 
             # Контейнер с кнопкой и текстом
-            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=10)
+            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=dp(10))
 
             # Текст примера
             example_label = Label(
                 text=f'{example_pair[0]}\n------------------\n{example_pair[1]}',
                 size_hint=(1, None),
-                font_size=18,
+                font_size=sp(18),
                 halign="left",
                 valign="middle",
                 text_size=(0, None),
@@ -347,7 +347,7 @@ class WordShow(Screen):
             image = ImageButton(
                 source="audio.png",
                 size_hint=(None, None),
-                size=(50, 50),
+                size=(dp(50), dp(50)),
                 pos_hint={'center_y': 0.5},
                 text=example_pair[0],
                 word=word
@@ -431,13 +431,13 @@ class TheoryScreen(Screen):
     def __init__(self, **kwargs):
         super(TheoryScreen, self).__init__(**kwargs)
 
-        self.close_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(20, 20))
+        self.close_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)))
 
         # # Кнопка "Назад"
         # self.back_button = PressableButton(text="Назад", on_release_callback=lambda: self.go_back())
 
         # Кнопка "Сгенерировать слово"
-        self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
+        self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(dp(200), dp(75)),
                                            on_release_callback=lambda: self.text_load())
 
         # Кнопка "Добавить в конспект"
@@ -449,11 +449,11 @@ class TheoryScreen(Screen):
                                               font_size=16)
 
         # Верхняя панель
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=20)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(20))
         self.toolbar.add_widget(self.close_button)
 
         # Нижняя панель
-        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=60)
+        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(60))
         self.toolbar2.add_widget(self.next_button)
 
         # Прокручиваемая область
@@ -473,9 +473,9 @@ class TheoryScreen(Screen):
         # Добавляем текстовый лейаут в прокручиваемую область
 
         # Основной лейаут
-        self.main_layout = BoxLayout(orientation='vertical', padding=[20], spacing=20)
+        self.main_layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(20))
 
-        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=20, padding=10)
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
         self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
 
         self.vertical_layout.add_widget(self.label)
@@ -483,7 +483,7 @@ class TheoryScreen(Screen):
         self.scroll_view.add_widget(self.vertical_layout)
 
         # Лейаут для дополнительных кнопок
-        self.func_layout2 = BoxLayout(size_hint_y=None, height=60, spacing=14)
+        self.func_layout2 = BoxLayout(size_hint_y=None, height=dp(60), spacing=dp(14))
         self.func_layout2.add_widget(self.jorn_button)
         self.func_layout2.add_widget(self.more_ex_button)
 
@@ -608,13 +608,13 @@ class TheoryScreen(Screen):
             """Обновляет высоту контейнера на основе максимальной высоты дочерних элементов."""
             max_height = max(child.height for child in horizontal_container.children)
             horizontal_container.height = max_height + 20  # Добавляем небольшой отступ
-            print(f"Updated container height: {horizontal_container.height}")
+            print(f"Updated container height: {dp(horizontal_container.height)}")
 
         for i in range(3):
             horizontal_container = BoxLayout(
                 orientation="horizontal",
                 size_hint=(1, None),  # Контейнер не растягивается по высоте
-                spacing=10
+                spacing=dp(10)
             )
 
             # Блок текста
@@ -622,7 +622,7 @@ class TheoryScreen(Screen):
                 text=f'{super_dict[self.rand_word][i][0]}\n------------------\n'
                      f'{super_dict[self.rand_word][i][1]}',
                 size_hint=(1, None),
-                font_size=18,  # Устанавливаем увеличенный шрифт
+                font_size=sp(18),  # Устанавливаем увеличенный шрифт
                 halign="left",  # Выравнивание текста по левому краю
                 valign="middle",  # Вертикальное выравнивание
                 text_size=(0, None),
@@ -639,7 +639,7 @@ class TheoryScreen(Screen):
             image = ImageButton(
                 source="audio.png",  # Указываем путь к изображению
                 size_hint=(None, None),
-                size=(50, 50),
+                size=(dp(50), dp(50)),
                 pos_hint={'center_y': 0.5},
                 text=f'{super_dict[self.rand_word][i][0]}',
                 word=self.rand_word
@@ -660,7 +660,7 @@ class TheoryScreen(Screen):
                 if isinstance(child, BoxLayout):
                     max_height = max(grandchild.height for grandchild in child.children)
                     child.height = max_height + 20
-                    print(f"Recalculated container height: {child.height}")
+                    print(f"Recalculated container height: {dp(child.height)}")
 
         Clock.schedule_once(lambda dt: recalculate_all_heights())
 
@@ -705,27 +705,27 @@ class PracticeScreen(Screen):
         self.stand_chanse = [0.5, 0.7, 0.8, 0.9, 0.95, 0.98]
 
         # Основной лейаут
-        self.layout = BoxLayout(orientation='vertical', padding=[20], spacing=10)
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
 
         # Верхняя панель с кнопками выбора сложности и "Назад"
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
 
         # Spinner для выбора сложности
         self.difficulty_spinner = Spinner(
             text='Легчайший',
             values=('Легчайший', 'Лёгкий', 'Средний', 'Сложный', 'Случайно'),
             size_hint=(1, None),
-            height=75
+            height=dp(75)
         )
         self.difficulty_spinner.bind(text=self.on_difficulty_change)
         self.toolbar.add_widget(self.difficulty_spinner)
 
-        self.stop_button = Button(text="Завершить", size_hint=(1, None), height=75)
+        self.stop_button = Button(text="Завершить", size_hint=(1, None), height=dp(75))
         self.stop_button.bind(on_release=self.stop)
         self.toolbar.add_widget(self.stop_button)
 
         # Кнопка "Назад"
-        self.back_button = Button(text="Назад", size_hint=(1, None), height=75)
+        self.back_button = Button(text="Назад", size_hint=(1, None), height=dp(75))
         self.back_button.bind(on_release=self.go_back)
         self.toolbar.add_widget(self.back_button)
 
@@ -737,16 +737,16 @@ class PracticeScreen(Screen):
         self.center_label.bind(texture_size=self._resize_label)
 
         # Нижняя панель с кнопкой "Старт"
-        self.bottom_toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
-        self.start_button = Button(text="Старт", size_hint=(1, None), height=75)
+        self.bottom_toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
+        self.start_button = Button(text="Старт", size_hint=(1, None), height=dp(75))
         self.start_button.bind(on_release=self.start_practice)
         self.bottom_toolbar.add_widget(self.start_button)
 
         # Виджеты для вопросов и вариантов ответа (в сетке 2x3)
-        self.question_layout = GridLayout(cols=3, spacing=10, padding=[0, 10], size_hint_y=None, height=0)
+        self.question_layout = GridLayout(cols=3, spacing=dp(10), padding=[0, dp(10)], size_hint_y=None, height=0)
         self.answer_buttons = []
         for _ in range(6):  # Создаём 6 кнопок
-            btn = Button(size_hint=(1, None), height=75, opacity=0)
+            btn = Button(size_hint=(1, None), height=dp(75), opacity=0)
             btn.bind(on_release=self.select_answer)
             self.answer_buttons.append(btn)
             self.question_layout.add_widget(btn)
@@ -866,9 +866,9 @@ class PracticeScreen(Screen):
 
         self.input_field = TextInput(
             size_hint=(1, None),
-            height=50,
+            height=dp(50),
             multiline=False,
-            font_size=24,
+            font_size=sp(24),
             hint_text="Введите перевод..."
         )
         self.question_layout.add_widget(self.input_field)
@@ -887,9 +887,9 @@ class PracticeScreen(Screen):
 
         self.input_field_s = TextInput(
             size_hint=(1, None),
-            height=50,
+            height=dp(50),
             multiline=False,
-            font_size=24,
+            font_size=sp(24),
             hint_text="Введите перевод..."
         )
         self.question_layout.add_widget(self.input_field_s)
@@ -923,7 +923,7 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
-        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75, )  # Изначально кнопки невидимы
+        btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=dp(75))  # Изначально кнопки невидимы
         btn_audio.bind(
             on_release=lambda instance: self.play_audio(q_word, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(btn_audio)
@@ -933,9 +933,9 @@ class PracticeScreen(Screen):
 
         self.input_field_s = TextInput(
             size_hint=(1, None),
-            height=50,
+            height=dp(50),
             multiline=False,
-            font_size=24,
+            font_size=sp(24),
             hint_text="Введите перевод...",
         )
         self.question_layout.add_widget(self.input_field_s)
@@ -949,7 +949,7 @@ class PracticeScreen(Screen):
         self.rand_sent_question_norm_ang = self.rand_sent[0]
         self.rand_sent_question_norm_ru = self.rand_sent[1]
 
-        self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=75)
+        self.btn_audio = Button(text='Прослушать', size_hint_x=0.2, height=dp(75))
         self.btn_audio.bind(
             on_release=lambda instance: self.play_one_audio(q_word, self.rand_sent_question_norm_ang))
         self.audio_butt_lay.add_widget(self.btn_audio)
@@ -961,9 +961,9 @@ class PracticeScreen(Screen):
 
         self.input_field_s = TextInput(
             size_hint=(1, None),
-            height=50,
+            height=dp(50),
             multiline=False,
-            font_size=24,
+            font_size=sp(24),
             hint_text="Введите перевод...",
         )
         self.question_layout.add_widget(self.input_field_s)
@@ -1029,7 +1029,7 @@ class PracticeScreen(Screen):
 
             self.start_button.text = "Ответить"
             self.difficulty_spinner.disabled = True
-            self.question_layout.height = 2 * 85
+            self.question_layout.height = dp(2 * 85)
 
             for btn in self.answer_buttons:
                 btn.opacity = 1
@@ -1170,9 +1170,9 @@ class PracticeScreen(Screen):
 
         self.input_field_s_w = TextInput(
             size_hint=(1, None),
-            height=50,
+            height=dp(50),
             multiline=False,
-            font_size=24,
+            font_size=sp(24),
             hint_text="Введите слово..."
         )
         self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
@@ -1316,25 +1316,25 @@ class CompWordsScreen(Screen):
     def __init__(self, **kwargs):
         super(CompWordsScreen, self).__init__(**kwargs)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
+        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
         self.search_button.bind(on_release=lambda instance: self.search_menu(self.manager))
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
         self.toolbar.add_widget(self.search_button)
         self.toolbar.add_widget(Label())
         self.toolbar.add_widget(self.back_button)
 
         self.scroll_view = ScrollView()
 
-        self.layout = GridLayout(cols=2, spacing=10, size_hint_y=None)
+        self.layout = GridLayout(cols=2, spacing=dp(10), size_hint_y=None)
 
         self.scroll_view.add_widget(self.layout)
 
         self.layout.bind(minimum_height=self.layout.setter('height'))
 
-        self.main_layout = BoxLayout(orientation='vertical', padding=[20], spacing=10)
+        self.main_layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
         self.main_layout.add_widget(self.toolbar)
         self.main_layout.add_widget(self.scroll_view)
         self.add_widget(self.main_layout)
@@ -1404,8 +1404,8 @@ class SearchMenuComp(Screen):
             halign='center',
             valign='middle',
             size_hint=(1, None),
-            text='\n\nМожно просматривать только те слова, которые\nбыли раннее изучены в разделе "теория"',
-            font_size=24,
+            text='\n\nМожно просматривать только те слова, которые были раннее добавленны в разделе "мои" слова',
+            font_size=sp(24),
         )
         self.label.bind(texture_size=self._resize_label)
 
@@ -1413,7 +1413,7 @@ class SearchMenuComp(Screen):
             halign='center',
             valign='top',
             size_hint=(1, None),
-            font_size=18,
+            font_size=sp(18),
         )
         self.label2.bind(texture_size=self._resize_label)
 
@@ -1425,23 +1425,23 @@ class SearchMenuComp(Screen):
         self.text_layout.add_widget(self.label2)
         self.scroll_view.add_widget(self.text_layout)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(150, 75))
+        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(150, 75))
+        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
         self.search_button.bind(on_release=self.search_proc)
 
         self.search_widget = TextInput()
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
         self.toolbar.add_widget(self.search_widget)
         self.toolbar.add_widget(self.back_button)
 
-        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=75, spacing=10)
+        self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
         self.toolbar2.add_widget(Label())
         self.toolbar2.add_widget(self.search_button)
         self.toolbar2.add_widget(Label())
 
-        self.layout = BoxLayout(orientation='vertical', padding=[20])
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.scroll_view)
         self.layout.add_widget(self.toolbar2)
@@ -1516,11 +1516,11 @@ class MainWind(App):
             Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.main_screen.size, pos=self.main_screen.pos)
 
-        self.box1 = BoxLayout(size_hint_y=None, height=75, spacing=10)
-        self.box2 = BoxLayout(orientation='vertical', spacing=25)
-        self.box_main = BoxLayout(orientation='vertical', padding=[20], spacing=40)
+        self.box1 = BoxLayout(size_hint_y=None, height=dp(75), spacing=dp(10))
+        self.box2 = BoxLayout(orientation='vertical', spacing=dp(25))
+        self.box_main = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(40))
 
-        self.label = Label(text='Lexi\nLearn', font_size=30, font_name=main_font_style)
+        self.label = Label(text='Lexi\nLearn', font_size=sp(30), font_name=main_font_style)
         self.label2 = Label(halign='center', size_hint_y=0.4)
 
         self.btn = PressableButton(text='Настройки', font_size=22,
