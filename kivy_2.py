@@ -71,7 +71,7 @@ class PressableButton(Widget):
             valign="middle",
             size=self.size,
             pos=self.pos,
-            font_size=self.font_size,
+            font_size=sp(self.font_size),
             font_name=main_font_style,
             color=(1, 1, 1, 1)  # Белый текст
         )
@@ -439,10 +439,10 @@ class TheoryScreen(Screen):
         # Кнопка "Сгенерировать слово"
         self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(200, 75),
                                            on_release_callback=lambda: self.text_load())
-        self.next_button.bind(on_release=self.text_load)
 
         # Кнопка "Добавить в конспект"
-        self.jorn_button = PressableButton(text="в 'мои' слова", font_size=16)
+        self.jorn_button = PressableButton(text="в 'мои' слова", font_size=16,
+                                           on_release_callback=lambda: self.add_to_my_words())
 
         # Кнопка "Больше примеров"
         self.more_ex_button = PressableButton(text="Ещё примеры", on_release_callback=lambda: self.more_w(),
@@ -514,7 +514,8 @@ class TheoryScreen(Screen):
                 type4 DATETIME,
                 type5 DATETIME,
                 type6 DATETIME,
-                type7 DATETIME
+                type7 DATETIME,
+                is_my INT
             )
         ''')
         conn.commit()
@@ -529,6 +530,25 @@ class TheoryScreen(Screen):
         except sqlite3.IntegrityError:
             print(f"Слово '{word}' уже существует в базе данных.")
 
+        conn.close()
+
+    def add_to_my_words(self, *args):
+        print(11)
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                UPDATE words
+                SET is_my = 1
+                WHERE word = ?
+            ''', (self.rand_word,))
+
+        if cursor.rowcount == 0:
+            print(f"Слово '{self.rand_word}' не найдено в базе данных.")
+        else:
+            print(f"Слово '{self.rand_word}' помечено как 'моё'.")
+
+        conn.commit()
         conn.close()
 
     def go_back(self, *args):
@@ -546,14 +566,17 @@ class TheoryScreen(Screen):
         self.label.text_size = (self.width - 40, None)
 
     def read_csv_as_list(self):
-        conn = sqlite3.connect('words.db')
-        cursor = conn.cursor()
+        try:
+            conn = sqlite3.connect('words.db')
+            cursor = conn.cursor()
 
-        cursor.execute('SELECT word FROM words')
-        words = [row[0] for row in cursor.fetchall()]
+            cursor.execute('SELECT word FROM words')
+            words = [row[0] for row in cursor.fetchall()]
 
-        conn.close()
-        print(words)
+            conn.close()
+            print(words)
+        except Exception as e:
+            words = []
 
         return words
 
@@ -1573,14 +1596,17 @@ class MainWind(App):
         self.screen_manager.current = 'all_words'
 
     def read_csv_as_list(self):
-        conn = sqlite3.connect('words.db')
-        cursor = conn.cursor()
+        try:
+            conn = sqlite3.connect('words.db')
+            cursor = conn.cursor()
 
-        cursor.execute('SELECT word FROM words')
-        words = [row[0] for row in cursor.fetchall()]
+            cursor.execute('SELECT word FROM words')
+            words = [row[0] for row in cursor.fetchall()]
 
-        conn.close()
-        print(words)
+            conn.close()
+            print(words)
+        except Exception as e:
+            words = []
 
         return words
 
