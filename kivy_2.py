@@ -6,13 +6,9 @@ from kivy.uix.gridlayout import GridLayout
 from kivy.core.window import Window
 from kivy.uix.screenmanager import ScreenManager, Screen, SlideTransition, FadeTransition, SwapTransition
 from kivy.uix.textinput import TextInput
-from kivy.uix.recycleview import RecycleView
 from kivy.uix.scrollview import ScrollView
 import random
 from g4f.client import Client
-import pandas
-import os
-import csv
 from super_j import super_dict
 from kivy.uix.spinner import Spinner
 from kivy.graphics import Rectangle, Color, RoundedRectangle
@@ -31,6 +27,8 @@ Window.size = (432, 768)
 Window.title = 'LexiLearn'
 client = Client()
 
+print("Current DPI:", Window.dpi)
+
 # main_font_style = "arial_black.ttf"
 
 main_font_style = "IntroDemo-BlackCAPS.otf"
@@ -39,8 +37,7 @@ alt_font_style = "IntroDemoCond-LightCAPS.otf"
 
 class PressableButton(Widget):
     def __init__(self, text="", shadow_height=6, font_size=18, size=(300, 100), color=(0.2, 0.6, 0.8, 1),
-                 shadow_color=(0.1, 0.4, 0.6, 1),
-                 on_release_callback=None, **kwargs):
+                 shadow_color=(0.1, 0.4, 0.6, 1), on_release_callback=None, **kwargs):
         super().__init__(**kwargs)
         self.color = color if len(color) == 4 else self.rgb_to_kivy_color(color)
         self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
@@ -48,10 +45,11 @@ class PressableButton(Widget):
         self.font_size = font_size
         self.shadow_height = shadow_height
         self.on_release_callback = on_release_callback
-
-        # Размеры кнопки
         self.size = kwargs.get("size", size)
         self.pos = kwargs.get("pos", (100, 200))
+
+        # Инициализация состояния кнопки
+        self.is_pressed = False
 
         # Рисуем кнопку и тень
         with self.canvas:
@@ -72,12 +70,12 @@ class PressableButton(Widget):
             size=self.size,
             pos=self.pos,
             font_size=sp(self.font_size),
-            font_name=main_font_style,
-            color=(1, 1, 1, 1)  # Белый текст
+            color=(1, 1, 1, 1),
+            font_name=main_font_style
         )
         self.add_widget(self.label)
 
-        # Добавляем обработчики событий
+        # Привязка обновления графики
         self.bind(pos=self.update_graphics, size=self.update_graphics)
 
     @staticmethod
@@ -98,20 +96,20 @@ class PressableButton(Widget):
 
     def on_touch_down(self, touch):
         """Обработка нажатия на кнопку."""
-
-        # Проверка попадания в область кнопки с учетом положения
         if self.collide_point(*touch.pos):
-            self.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Опускаем кнопку
+            self.is_pressed = True  # Запоминаем, что кнопка нажата
+            self.rect.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Визуально опускаем кнопку
+            self.label.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Опускаем текст
             self.shadow_color_instruction.a = 0  # Прячем тень
             return True
         return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
         """Обработка отжатия кнопки."""
-
-        # Проверяем, произошло ли отпускание внутри кнопки с учетом положения
-        if self.collide_point(*touch.pos):
-            self.pos = (self.pos[0], self.pos[1] + self.shadow_height)  # Поднимаем кнопку
+        if self.is_pressed:  # Если кнопка была нажата
+            self.is_pressed = False  # Сбрасываем флаг нажатия
+            self.rect.pos = self.pos  # Возвращаем кнопку в исходное положение
+            self.label.pos = self.pos  # Возвращаем текст в исходное положение
             self.shadow_color_instruction.a = 1  # Показываем тень
 
             # Вызываем callback при отпускании кнопки
@@ -119,6 +117,12 @@ class PressableButton(Widget):
                 self.on_release_callback()
             return True
         return super().on_touch_up(touch)
+
+    def on_touch_move(self, touch):
+        """Обработка перемещения курсора."""
+        if self.is_pressed:  # Если кнопка нажата, игнорируем перемещение
+            return True
+        return super().on_touch_move(touch)
 
 
 class SettingsScreen(Screen):
