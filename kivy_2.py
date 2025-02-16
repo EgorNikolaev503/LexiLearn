@@ -129,16 +129,15 @@ class SettingsScreen(Screen):
     def __init__(self, **kwargs):
         super(SettingsScreen, self).__init__(**kwargs)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.all_clear = Button(text="Сброс прогресса", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.back_button.bind(on_release=self.go_back)
-        self.all_clear.bind(on_release=self.all_clear_event)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)))
+        self.all_clear = PressableButton(text="Сброс прогресса",
+                                         on_release_callback=lambda: self.all_clear_event())
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
-        self.toolbar.add_widget(Label())
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(20))
         self.toolbar.add_widget(self.back_button)
+        self.toolbar.add_widget(Label())
 
-        self.box_for_clear = BoxLayout(orientation='horizontal', padding=[dp(20)])
+        self.box_for_clear = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.box_for_clear.add_widget(Label())
         self.box_for_clear.add_widget(self.all_clear)
         self.box_for_clear.add_widget(Label())
