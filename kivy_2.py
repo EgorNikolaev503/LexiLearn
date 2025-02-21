@@ -43,7 +43,7 @@ class PressableButton(Widget):
         self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
         self.text = text
         self.font_size = font_size
-        self.shadow_height = shadow_height
+        self.shadow_height = dp(shadow_height)
         self.on_release_callback = on_release_callback
         self.size = kwargs.get("size", size)
         self.pos = kwargs.get("pos", (100, 200))
@@ -1319,15 +1319,16 @@ class CompWordsScreen(Screen):
     def __init__(self, **kwargs):
         super(CompWordsScreen, self).__init__(**kwargs)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.back_button.bind(on_release=self.go_back)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
+                                       pos_hint={'top': 1})
+        self.search_button = PressableButton(text="Поиск", size_hint=(None, None), size=(dp(150), dp(70)),
+                                             pos_hint={'top': 1})
         self.search_button.bind(on_release=lambda instance: self.search_menu(self.manager))
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
-        self.toolbar.add_widget(self.search_button)
-        self.toolbar.add_widget(Label())
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(76))
         self.toolbar.add_widget(self.back_button)
+        self.toolbar.add_widget(Label())
+        self.toolbar.add_widget(self.search_button)
 
         self.scroll_view = ScrollView()
 
