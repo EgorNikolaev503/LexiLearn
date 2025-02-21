@@ -1341,7 +1341,7 @@ class CompWordsScreen(Screen):
 
         self.scroll_view = ScrollView()
 
-        self.layout = GridLayout(cols=2, spacing=dp(10), size_hint_y=None)
+        self.layout = GridLayout(cols=2, spacing=dp(20), size_hint_y=None)
 
         self.scroll_view.add_widget(self.layout)
 
@@ -1360,8 +1360,9 @@ class CompWordsScreen(Screen):
         self.layout.clear_widgets()
 
         for i in self.read_csv_as_list():
-            btn = Button(text=f'{i}', size_hint=(1, None))
-            btn.bind(on_release=lambda instance, text=i: self.word_show(self.manager, text))
+            btn = PressableButton(text=f'{i}', size_hint=(1, None), size=(dp(150), dp(70)),
+                                  on_release_callback=lambda text=i: self.word_show(self.manager, text))
+            # btn.bind(on_release=lambda instance, text=i: self.word_show(self.manager, text))
             self.layout.add_widget(btn)
 
     def go_back(self, *args):
@@ -1389,6 +1390,7 @@ class CompWordsScreen(Screen):
         self.manager.current = 'comp_search_menu'
 
     def word_show(self, screen_manager, word):
+        print(1)
         if not screen_manager.has_screen('word_show_window'):
             print("Создаём WordShow...")
             word_show_window = WordShow(name='word_show_window')
@@ -1529,7 +1531,7 @@ class MainWind(App):
             Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.main_screen.size, pos=self.main_screen.pos)
 
-        self.box1 = BoxLayout(size_hint_y=None, height=dp(90))
+        self.box1 = BoxLayout(size_hint_y=None, height=dp(75))
         self.box2 = BoxLayout(orientation='vertical', spacing=dp(25))
         self.box_main = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(40))
 
