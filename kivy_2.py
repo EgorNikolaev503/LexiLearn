@@ -22,6 +22,7 @@ from kivy.metrics import dp, sp
 from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.clock import Clock
+import threading
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
@@ -406,12 +407,16 @@ class ImageButton(ButtonBehavior, Image):
         return None
 
     def on_press(self):
-        wav_file = f'G:\Lexi_voices\{self.word}_{self.find_sentence_index(self.word, self.text)}.wav'
+        def audio_thread():
+            wav_file = f'G:\Lexi_voices\{self.word}_{self.find_sentence_index(self.word, self.text)}.wav'
 
-        sample_rate, audio_data = read(wav_file)
+            sample_rate, audio_data = read(wav_file)
 
-        sd.play(audio_data, samplerate=sample_rate)
-        sd.wait()
+            sd.play(audio_data, samplerate=sample_rate)
+            sd.wait()
+
+        thread = threading.Thread(target=audio_thread, daemon=True)
+        thread.start()
 
 
 class CloseButton(ButtonBehavior, Image):
@@ -974,21 +979,30 @@ class PracticeScreen(Screen):
         return None
 
     def play_audio(self, word, sentence):
-        wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
+        def audio_thread():
+            wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
 
-        sample_rate, audio_data = read(wav_file)
+            sample_rate, audio_data = read(wav_file)
 
-        sd.play(audio_data, samplerate=sample_rate)
-        sd.wait()
+            sd.play(audio_data, samplerate=sample_rate)
+            sd.wait()
+
+        thread = threading.Thread(target=audio_thread, daemon=True)
+        thread.start()
 
     def play_one_audio(self, word, sentence):
         self.btn_audio.disabled = True
-        wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
 
-        sample_rate, audio_data = read(wav_file)
+        def audio_thread():
+            wav_file = f'G:\Lexi_voices\{word}_{self.find_sentence_index(word, sentence)}.wav'
 
-        sd.play(audio_data, samplerate=sample_rate)
-        sd.wait()
+            sample_rate, audio_data = read(wav_file)
+
+            sd.play(audio_data, samplerate=sample_rate)
+            sd.wait()
+
+        thread = threading.Thread(target=audio_thread, daemon=True)
+        thread.start()
 
     def start_practice(self, *args):
         """Начинает практику."""
