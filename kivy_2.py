@@ -173,18 +173,14 @@ class AllWordsScreen(Screen):
     def __init__(self, **kwargs):
         super(AllWordsScreen, self).__init__(**kwargs)
 
-        # Кнопка "Назад"
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.back_button.bind(on_release=self.go_back)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
+                                       pos_hint={'top': 1})
 
-        # Кнопка "Поиск"
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.search_button.bind(on_release=self.search_proc)
+        self.search_button = PressableButton(text="Поиск", size_hint=(None, None), size=(dp(300), dp(70)),
+                                             on_release_callback=lambda: self.search_proc())
 
-        # Виджет для поиска
-        self.search_widget = TextInput(size_hint_y=None, height=dp(75))
+        self.search_widget = TextInput(size_hint_y=None, height=dp(60), font_size=sp(32))
 
-        # Заголовок с названием слова
         self.label = Label(
             halign='center',
             valign='middle',
@@ -194,7 +190,6 @@ class AllWordsScreen(Screen):
         )
         self.label.bind(texture_size=self._resize_label)
 
-        # Виджет для примеров предложений
         self.label2 = Label(
             halign='center',
             valign='top',
@@ -211,8 +206,7 @@ class AllWordsScreen(Screen):
         self.text_layout.add_widget(self.label2)
         self.scroll_view.add_widget(self.text_layout)
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
-        self.toolbar.add_widget(self.search_widget)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(30), spacing=dp(10))
         self.toolbar.add_widget(self.back_button)
 
         self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
@@ -220,8 +214,9 @@ class AllWordsScreen(Screen):
         self.toolbar2.add_widget(self.search_button)
         self.toolbar2.add_widget(Label())
 
-        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
         self.layout.add_widget(self.toolbar)
+        self.layout.add_widget(self.search_widget)
         self.layout.add_widget(self.scroll_view)
         self.layout.add_widget(self.toolbar2)
         self.add_widget(self.layout)
@@ -1322,8 +1317,8 @@ class CompWordsScreen(Screen):
         self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
                                        pos_hint={'top': 1})
         self.search_button = PressableButton(text="Поиск", size_hint=(None, None), size=(dp(150), dp(70)),
-                                             pos_hint={'top': 1})
-        self.search_button.bind(on_release=lambda instance: self.search_menu(self.manager))
+                                             pos_hint={'top': 1},
+                                             on_release_callback=lambda: self.search_menu(self.manager))
 
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(76))
         self.toolbar.add_widget(self.back_button)
@@ -1429,15 +1424,14 @@ class SearchMenuComp(Screen):
         self.text_layout.add_widget(self.label2)
         self.scroll_view.add_widget(self.text_layout)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.back_button.bind(on_release=self.go_back)
-        self.search_button = Button(text="Поиск", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.search_button.bind(on_release=self.search_proc)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
+                                       pos_hint={'top': 1})
+        self.search_button = PressableButton(text="Поиск", size_hint=(None, None), size=(dp(300), dp(70)),
+                                             on_release_callback=lambda: self.search_proc())
 
-        self.search_widget = TextInput()
+        self.search_widget = TextInput(size_hint_y=None, height=dp(60), font_size=sp(32))
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
-        self.toolbar.add_widget(self.search_widget)
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(30), spacing=dp(10))
         self.toolbar.add_widget(self.back_button)
 
         self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
@@ -1447,6 +1441,7 @@ class SearchMenuComp(Screen):
 
         self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
+        self.layout.add_widget(self.search_widget)
         self.layout.add_widget(self.scroll_view)
         self.layout.add_widget(self.toolbar2)
         self.add_widget(self.layout)
@@ -1520,12 +1515,12 @@ class MainWind(App):
             Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.main_screen.size, pos=self.main_screen.pos)
 
-        self.box1 = BoxLayout(size_hint_y=None, height=dp(75), spacing=dp(10))
+        self.box1 = BoxLayout(size_hint_y=None, height=dp(90))
         self.box2 = BoxLayout(orientation='vertical', spacing=dp(25))
         self.box_main = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(40))
 
         self.label = Label(text='Lexi\nLearn', font_size=sp(30), font_name=main_font_style)
-        self.label2 = Label(halign='center', size_hint_y=0.4)
+        self.label2 = Label(halign='center', size_hint_y=0.4, font_size=sp(20), font_name=main_font_style)
 
         self.btn = PressableButton(text='Настройки', font_size=22,
                                    on_release_callback=lambda: self.open_settings(self.screen_manager))
@@ -1567,7 +1562,7 @@ class MainWind(App):
     def update_statistics(self, *args):
         studied_words = len(self.read_csv_as_list())
         remaining_percentage = round(((1000 - studied_words) / 1000) * 100, 2)
-        self.label2.text = f'Статистика:\nИзучено слов: {studied_words}\nОсталось {remaining_percentage}%'
+        self.label2.text = f'Статистика\n\nИзучено слов: {studied_words}\nОсталось {remaining_percentage}%'
 
     def open_settings(self, screen_manager):
         self.screen_manager.transition = FadeTransition(duration=0.20)
