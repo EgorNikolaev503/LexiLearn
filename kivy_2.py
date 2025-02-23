@@ -57,21 +57,17 @@ class PressableButton(Widget):
         self.size = kwargs.get("size", size)
         self.pos = kwargs.get("pos", (100, 200))
 
-        # Инициализация состояния кнопки
         self.is_pressed = False
 
-        # Рисуем кнопку и тень
         with self.canvas:
             # Тень
             self.shadow_color_instruction = Color(*self.shadow_color)
             self.shadow = RoundedRectangle(size=(self.size[0], self.size[1]),
                                            pos=(self.pos[0], self.pos[1] - self.shadow_height), radius=[20])
 
-            # Кнопка
             self.color_instruction = Color(*self.color)
             self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[20])
 
-        # Добавляем текстовый лейбл
         self.label = Label(
             text=self.text,
             halign="center",
@@ -84,52 +80,44 @@ class PressableButton(Widget):
         )
         self.add_widget(self.label)
 
-        # Привязка обновления графики
         self.bind(pos=self.update_graphics, size=self.update_graphics)
 
     @staticmethod
     def rgb_to_kivy_color(rgb, alpha=1.0):
-        """Конвертирует цвет из RGB (0-255) в формат Kivy RGBA (0-1)."""
         return tuple(channel / 255 for channel in rgb) + (alpha,)
 
     def update_graphics(self, *args):
-        """Обновление графики при изменении размера или положения."""
         self.shadow.size = self.size
         self.shadow.pos = (self.pos[0], self.pos[1] - self.shadow_height)
         self.rect.size = self.size
         self.rect.pos = self.pos
 
-        # Обновляем текстовый лейбл
         self.label.size = self.size
         self.label.pos = self.pos
 
     def on_touch_down(self, touch):
-        """Обработка нажатия на кнопку."""
         if self.collide_point(*touch.pos):
-            self.is_pressed = True  # Запоминаем, что кнопка нажата
-            self.rect.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Визуально опускаем кнопку
-            self.label.pos = (self.pos[0], self.pos[1] - self.shadow_height)  # Опускаем текст
-            self.shadow_color_instruction.a = 0  # Прячем тень
+            self.is_pressed = True
+            self.rect.pos = (self.pos[0], self.pos[1] - self.shadow_height)
+            self.label.pos = (self.pos[0], self.pos[1] - self.shadow_height)
+            self.shadow_color_instruction.a = 0
             return True
         return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
-        """Обработка отжатия кнопки."""
-        if self.is_pressed:  # Если кнопка была нажата
-            self.is_pressed = False  # Сбрасываем флаг нажатия
-            self.rect.pos = self.pos  # Возвращаем кнопку в исходное положение
-            self.label.pos = self.pos  # Возвращаем текст в исходное положение
-            self.shadow_color_instruction.a = 1  # Показываем тень
+        if self.is_pressed:
+            self.is_pressed = False
+            self.rect.pos = self.pos
+            self.label.pos = self.pos
+            self.shadow_color_instruction.a = 1
 
-            # Вызываем callback при отпускании кнопки
             if self.on_release_callback:
                 self.on_release_callback()
             return True
         return super().on_touch_up(touch)
 
     def on_touch_move(self, touch):
-        """Обработка перемещения курсора."""
-        if self.is_pressed:  # Если кнопка нажата, игнорируем перемещение
+        if self.is_pressed:
             return True
         return super().on_touch_move(touch)
 
@@ -173,7 +161,6 @@ class SettingsScreen(Screen):
         conn.close()
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
 
@@ -237,25 +224,20 @@ class AllWordsScreen(Screen):
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def _resize_label(self, instance, texture_size):
-        """Динамически изменяет высоту виджета в зависимости от его содержания."""
         instance.height = instance.texture_size[1]
         instance.size_hint_y = None
 
     def _update_text_sizes(self, *args):
-        """Обновляет размеры текстовых областей."""
         self.label2.text_size = (self.width - 40, None)
         self.label.text_size = (self.width - 40, None)
 
     def go_back(self, *args):
-        """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'main'
 
     def search_proc(self, *args):
-        """Поиск слова и отображение примеров."""
         self.word = self.search_widget.text
         if self.word in super_dict.keys():
-            # Формирование текста с примерами предложений
             text_ex = "Примеры предложений:\n\n"
             for example_pair in super_dict[self.word]:
                 text_ex += f"{example_pair[0]}\n{example_pair[1]}\n\n"
@@ -272,7 +254,6 @@ class AllWordsScreen(Screen):
                                ' из 1000 самых используемых слов в английском языке'
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
         self.label2.text_size = (self.width - 40, None)
@@ -282,36 +263,30 @@ class WordShow(Screen):
     def __init__(self, **kwargs):
         super(WordShow, self).__init__(**kwargs)
 
-        # Верхняя панель с кнопкой "Назад"
         self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
         self.back_button.bind(on_release=self.go_back)
 
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
-        self.toolbar.add_widget(Label())  # Заполнитель
+        self.toolbar.add_widget(Label())
         self.toolbar.add_widget(self.back_button)
 
-        # Прокручиваемая область (ScrollView)
         self.scroll_view = ScrollView(size_hint=(1, 1))
         self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
         self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
         self.scroll_view.add_widget(self.vertical_layout)
 
-        # Основной лейаут экрана
         self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.scroll_view)
         self.add_widget(self.layout)
 
-        # Цвет фона
         with self.canvas.before:
             self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
 
     def update_content(self, word):
-        """Обновляет экран новым словом и примерами."""
-        self.vertical_layout.clear_widgets()  # Очищаем старые данные
+        self.vertical_layout.clear_widgets()
 
-        # Заголовок (внутри прокрутки!)
         label = Label(
             text=f"\nВаше слово: {word}\n",
             font_size=sp(24),
@@ -323,7 +298,6 @@ class WordShow(Screen):
         label.bind(texture_size=self._resize_label)
         self.vertical_layout.add_widget(label)
 
-        # Добавляем примеры предложений
         examples = super_dict.get(word, [])
         if not examples:
             self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=sp(18)))
@@ -332,10 +306,8 @@ class WordShow(Screen):
         for i in range(min(3, len(examples))):
             example_pair = examples[i]
 
-            # Контейнер с кнопкой и текстом
             horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=dp(10))
 
-            # Текст примера
             example_label = Label(
                 text=f'{example_pair[0]}\n------------------\n{example_pair[1]}',
                 size_hint=(1, None),
@@ -350,7 +322,6 @@ class WordShow(Screen):
                 texture_size=lambda s, t: s.setter('height')(s, t[1])
             )
 
-            # Кнопка аудио
             image = ImageButton(
                 source="audio.png",
                 size_hint=(None, None),
@@ -363,23 +334,18 @@ class WordShow(Screen):
             horizontal_container.add_widget(image)
             horizontal_container.add_widget(example_label)
 
-            # Откладываем пересчет высоты контейнера
             Clock.schedule_once(lambda dt: self.update_container_height(horizontal_container))
 
-            # Добавляем горизонтальный контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
 
-        # Принудительно пересчитываем размеры всех контейнеров после добавления
         Clock.schedule_once(lambda dt: self.recalculate_all_heights())
 
     def update_container_height(self, horizontal_container):
-        """Обновляет высоту контейнера на основе максимальной высоты дочерних элементов."""
         max_height = max(child.height for child in horizontal_container.children)
-        horizontal_container.height = max_height + 20  # Отступ
+        horizontal_container.height = max_height + 20
         print(f"Updated container height: {horizontal_container.height}")
 
     def recalculate_all_heights(self, *_):
-        """Пересчитывает размеры всех контейнеров после их добавления."""
         for child in self.vertical_layout.children:
             if isinstance(child, BoxLayout):
                 max_height = max(grandchild.height for grandchild in child.children)
@@ -387,16 +353,13 @@ class WordShow(Screen):
                 print(f"Recalculated container height: {child.height}")
 
     def _resize_label(self, instance, texture_size):
-        """Динамически изменяет высоту текста."""
         instance.height = texture_size[1]
 
     def go_back(self, *args):
-        """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_words'
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
 
@@ -548,17 +511,14 @@ class TheoryScreen(Screen):
         conn.close()
 
     def go_back(self, *args):
-        """Возврат к предыдущему экрану."""
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'main'
 
     def _resize_label(self, instance, texture_size):
-        """Динамически изменяет высоту виджета в зависимости от его содержания."""
         instance.height = instance.texture_size[1]
         instance.size_hint_y = None
 
     def _update_text_sizes(self, *args):
-        """Обновляет размеры текстовых областей."""
         self.label.text_size = (self.width - 40, None)
 
     def read_csv_as_list(self):
@@ -577,7 +537,6 @@ class TheoryScreen(Screen):
         return words
 
     def get_random_word_not_in_csv(self):
-        """Получение случайного слова, отсутствующего в CSV."""
         comp_words = self.read_csv_as_list()
 
         with open("1-1000.txt", "r") as file:
@@ -601,39 +560,35 @@ class TheoryScreen(Screen):
         self.vertical_layout.add_widget(self.label)
 
         def update_container_height(horizontal_container):
-            """Обновляет высоту контейнера на основе максимальной высоты дочерних элементов."""
             max_height = max(child.height for child in horizontal_container.children)
-            horizontal_container.height = max_height + 20  # Добавляем небольшой отступ
+            horizontal_container.height = max_height + 20
             print(f"Updated container height: {dp(horizontal_container.height)}")
 
         for i in range(3):
             horizontal_container = BoxLayout(
                 orientation="horizontal",
-                size_hint=(1, None),  # Контейнер не растягивается по высоте
+                size_hint=(1, None),
                 spacing=dp(10)
             )
 
-            # Блок текста
             label = Label(
                 text=f'{super_dict[self.rand_word][i][0]}\n------------------\n'
                      f'{super_dict[self.rand_word][i][1]}',
                 size_hint=(1, None),
-                font_size=sp(18),  # Устанавливаем увеличенный шрифт
-                halign="left",  # Выравнивание текста по левому краю
-                valign="middle",  # Вертикальное выравнивание
+                font_size=sp(18),
+                halign="left",
+                valign="middle",
                 text_size=(0, None),
                 font_name="IntroDemo-BlackCAPS.otf"
             )
 
-            # Привязываем высоту текста к лейблу
             label.bind(
                 width=lambda s, w: s.setter('text_size')(s, (w, None)),
                 texture_size=lambda s, t: s.setter('height')(s, t[1])
             )
 
-            # Добавляем кнопку
             image = ImageButton(
-                source="audio.png",  # Указываем путь к изображению
+                source="audio.png",
                 size_hint=(None, None),
                 size=(dp(50), dp(50)),
                 pos_hint={'center_y': 0.5},
@@ -644,13 +599,10 @@ class TheoryScreen(Screen):
             horizontal_container.add_widget(image)
             horizontal_container.add_widget(label)
 
-            # Откладываем пересчет высоты контейнера
             Clock.schedule_once(lambda dt: update_container_height(horizontal_container))
 
-            # Добавляем горизонтальный контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
 
-        # Принудительно пересчитываем размеры всех контейнеров после добавления
         def recalculate_all_heights(*_):
             for child in self.vertical_layout.children:
                 if isinstance(child, BoxLayout):
@@ -664,7 +616,6 @@ class TheoryScreen(Screen):
         self.add_word_to_database(self.rand_word)
 
     def more_w(self, *args):
-        """Генерация дополнительных примеров предложений и добавление в ScrollView."""
         if not hasattr(self, "rand_word") or not self.rand_word:
             print("Слово ещё не сгенерировано.")
             return
@@ -689,7 +640,6 @@ class TheoryScreen(Screen):
             english_sentence = example_parts[0].strip()
             russian_translation = example_parts[1].strip()
 
-            # Создаём горизонтальный контейнер для нового примера
             horizontal_container = BoxLayout(
                 orientation="horizontal",
                 size_hint=(1, None),
@@ -697,7 +647,6 @@ class TheoryScreen(Screen):
                 height=dp(70)
             )
 
-            # Метка с текстом примера
             label = Label(
                 text=f"{english_sentence}\n------------------\n{russian_translation}",
                 size_hint=(1, None),
@@ -708,7 +657,6 @@ class TheoryScreen(Screen):
                 font_name="IntroDemo-BlackCAPS.otf"
             )
 
-            # Привязываем высоту текста к лейблу
             label.bind(
                 width=lambda s, w: s.setter('text_size')(s, (w, None)),
                 texture_size=lambda s, t: s.setter('height')(s, t[1])
@@ -719,7 +667,6 @@ class TheoryScreen(Screen):
             horizontal_container.add_widget(empty_widget)
             horizontal_container.add_widget(label)
 
-            # Функция для обновления высоты контейнера после рендеринга текста
             def update_height(*_):
                 max_height = max(child.height for child in horizontal_container.children)
                 horizontal_container.height = max_height + dp(10)
@@ -727,7 +674,6 @@ class TheoryScreen(Screen):
 
             Clock.schedule_once(update_height)
 
-            # Добавляем новый контейнер в вертикальный список
             self.vertical_layout.add_widget(horizontal_container)
 
         except Exception as e:
@@ -740,7 +686,6 @@ class TheoryScreen(Screen):
             self.vertical_layout.add_widget(error_label)
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
 
@@ -749,20 +694,16 @@ class PracticeScreen(Screen):
     def __init__(self, **kwargs):
         super(PracticeScreen, self).__init__(**kwargs)
 
-        # Переменные состояния
         self.current_word = None
         self.correct_answer = None
         self.selected_answer = None
         self.type_question = 0
         self.stand_chanse = [0.5, 0.7, 0.8, 0.9, 0.95, 0.98]
 
-        # Основной лейаут
         self.layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
 
-        # Верхняя панель с кнопками выбора сложности и "Назад"
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
 
-        # Spinner для выбора сложности
         self.difficulty_spinner = Spinner(
             text='Легчайший',
             values=('Легчайший', 'Лёгкий', 'Средний', 'Сложный', 'Случайно'),
@@ -776,28 +717,24 @@ class PracticeScreen(Screen):
         self.stop_button.bind(on_release=self.stop)
         self.toolbar.add_widget(self.stop_button)
 
-        # Кнопка "Назад"
         self.back_button = Button(text="Назад", size_hint=(1, None), height=dp(75))
         self.back_button.bind(on_release=self.go_back)
         self.toolbar.add_widget(self.back_button)
 
-        # Текстовое поле по центру
         self.center_label = Label(
             text="Выберите уровень сложности и нажимайте на кнопку 'Старт'",
             font_size=32, halign='center', valign='middle'
         )
         self.center_label.bind(texture_size=self._resize_label)
 
-        # Нижняя панель с кнопкой "Старт"
         self.bottom_toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
         self.start_button = Button(text="Старт", size_hint=(1, None), height=dp(75))
         self.start_button.bind(on_release=self.start_practice)
         self.bottom_toolbar.add_widget(self.start_button)
 
-        # Виджеты для вопросов и вариантов ответа (в сетке 2x3)
         self.question_layout = GridLayout(cols=3, spacing=dp(10), padding=[0, dp(10)], size_hint_y=None, height=0)
         self.answer_buttons = []
-        for _ in range(6):  # Создаём 6 кнопок
+        for _ in range(6):
             btn = Button(size_hint=(1, None), height=dp(75), opacity=0)
             btn.bind(on_release=self.select_answer)
             self.answer_buttons.append(btn)
@@ -805,7 +742,6 @@ class PracticeScreen(Screen):
 
         self.audio_butt_lay = BoxLayout(orientation='horizontal', size_hint_y=None, height=75)
 
-        # Добавление всех элементов в основной лейаут
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.center_label)
         self.layout.add_widget(self.audio_butt_lay)
@@ -826,7 +762,6 @@ class PracticeScreen(Screen):
         self.difficulty_spinner.disabled = False
 
     def on_difficulty_change(self, spinner, text):
-        """Обработчик изменения сложности."""
         if text == 'Легчайший':
             self.stand_chanse = [0.5, 0.7, 0.8, 0.9, 0.95, 0.98]
         elif text == 'Лёгкий':
@@ -904,12 +839,10 @@ class PracticeScreen(Screen):
         return random.choice(words)
 
     def go_back(self, *args):
-        """Возврат на предыдущий экран."""
         self.manager.transition = FadeTransition(duration=0.2)
         self.manager.current = 'main'
 
     def load_new_question_input(self, q_word):
-        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для слов."""
         self.clear()
 
         self.current_word = self.translate_to_english(q_word)
@@ -926,7 +859,6 @@ class PracticeScreen(Screen):
         self.question_layout.add_widget(self.input_field)
 
     def load_new_question_s_input(self, q_word):
-        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
         self.rand_sent = self.get_random_sent(q_word)
@@ -967,7 +899,6 @@ class PracticeScreen(Screen):
         conn.close()
 
     def load_new_question_s_input_audio(self, q_word):
-        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
         self.rand_sent = self.get_random_sent(q_word)
@@ -993,7 +924,6 @@ class PracticeScreen(Screen):
         self.question_layout.add_widget(self.input_field_s)
 
     def load_new_question_s_input_audio_hard(self, q_word):
-        """Удаляет кнопки с вариантами ответов и меняет слово, добавляя поле ввода для предложений."""
         self.clear()
 
         self.rand_sent = self.get_random_sent(q_word)
@@ -1054,7 +984,6 @@ class PracticeScreen(Screen):
         thread.start()
 
     def start_practice(self, *args):
-        """Начинает практику."""
         if self.start_button.text == "Старт":
 
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
@@ -1153,7 +1082,6 @@ class PracticeScreen(Screen):
             self.start_button.text = "Ответить"
 
     def load_new_question_w_btn(self, q_word):
-        """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
         if self.chance_get_two(0.7) == 0:
@@ -1184,7 +1112,6 @@ class PracticeScreen(Screen):
         return super_dict[word][random.randint(0, 2)]
 
     def replace_word_with_blanks(self, sentence, target_word):
-        """Заменяет слово в предложении на подчёркивания, если слово содержится в элементе."""
         words = sentence.split()
         modified_words = [
             "_" * len(word) if target_word.lower() in word.lower() else word
@@ -1193,7 +1120,6 @@ class PracticeScreen(Screen):
         return " ".join(modified_words)
 
     def load_new_question_s_btn(self, q_word):
-        """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
         self.rand_sent = self.get_random_sent(q_word)
@@ -1219,7 +1145,6 @@ class PracticeScreen(Screen):
         self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
 
     def load_new_question_s_w_input(self, q_word):
-        """Генерация нового вопроса и восстановление кнопок."""
         self.clear()
 
         self.rand_sent = self.get_random_sent(q_word)
@@ -1250,14 +1175,12 @@ class PracticeScreen(Screen):
         self.audio_butt_lay.clear_widgets()
 
     def select_answer(self, instance):
-        """Выбор варианта ответа."""
         self.selected_answer = instance.text
         for btn in self.answer_buttons:
             btn.background_color = [0.8, 0.8, 0.8, 1]
         instance.background_color = [0.6, 0.6, 0.6, 1]
 
     def show_correct_answer_btn(self):
-        """Подсвечивает правильный ответ."""
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
                 self.update_bd_for_word(self.main_word, 'type1')
@@ -1313,7 +1236,6 @@ class PracticeScreen(Screen):
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
 
     def show_correct_answer_input(self):
-        """Подсвечивает правильный ответ."""
         if self.input_field.text.strip().lower() == self.main_word.strip().lower():
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = 'Правильно!'
@@ -1323,7 +1245,6 @@ class PracticeScreen(Screen):
             self.center_label.text = f'Неправильно, правильный ответ: {self.main_word}'
 
     def show_correct_answer_input_s_w(self, ang, ru):
-        """Подсвечивает правильный ответ."""
         if self.input_field_s_w.text.strip().lower() == self.main_word.strip().lower():
             self.center_label.color = [0, 1, 0, 1]
             self.center_label.text = f'Правильно!\n\n{ang}\n\n{ru}'
@@ -1333,7 +1254,6 @@ class PracticeScreen(Screen):
             self.center_label.text = f'Неправильно\n\n{ang}\n\n{ru}'
 
     def translate_to_english(self, word):
-        """Перевод слова на английский (заглушка)."""
         with open("1-1000.txt", "r") as file:
             text_words = file.read().split('\n')
             file.close()
@@ -1363,12 +1283,10 @@ class PracticeScreen(Screen):
         return [word for word in all_words if word not in exclude][:5]
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
 
     def _resize_label(self, instance, texture_size):
-        """Динамически изменяет размеры текста."""
         instance.size = instance.texture_size
         instance.text_size = (self.width - 40, None)
 
@@ -1411,7 +1329,6 @@ class CompWordsScreen(Screen):
         for i in self.read_csv_as_list():
             btn = PressableButton(text=f'{i}', size_hint=(1, None), size=(dp(150), dp(70)),
                                   on_release_callback=lambda text=i: self.word_show(self.manager, text))
-            # btn.bind(on_release=lambda instance, text=i: self.word_show(self.manager, text))
             self.layout.add_widget(btn)
 
     def go_back(self, *args):
@@ -1455,7 +1372,6 @@ class CompWordsScreen(Screen):
         screen_manager.current = 'word_show_window'
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
 
@@ -1553,17 +1469,14 @@ class SearchMenuComp(Screen):
                                'из 1000 самых используемых слов в английском языке'
 
     def _resize_label(self, instance, texture_size):
-        """Динамически изменяет высоту виджета в зависимости от его содержания."""
         instance.height = instance.texture_size[1]
         instance.size_hint_y = None
 
     def _update_text_sizes(self, *args):
-        """Обновляет размеры текстовых областей."""
         self.label2.text_size = (self.width - 40, None)
         self.label.text_size = (self.width - 40, None)
 
     def on_size(self, *args):
-        """Обновляет размеры фона и текстовых областей."""
         self.rect.size = self.size
         self.rect.pos = self.pos
         self.label2.text_size = (self.width - 40, None)
