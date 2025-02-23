@@ -421,6 +421,9 @@ class TheoryScreen(Screen):
         self.more_ex_button = PressableButton(text="Ещё примеры", on_release_callback=lambda: self.more_w(),
                                               font_size=16)
 
+        self.jorn_button.set_disabled(True)
+        self.more_ex_button.set_disabled(True)
+
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(20))
         self.toolbar.add_widget(self.close_button)
 
@@ -557,6 +560,8 @@ class TheoryScreen(Screen):
             return None
 
     def text_load(self, *args):
+        self.jorn_button.set_disabled(False)
+        self.more_ex_button.set_disabled(False)
         self.rand_word = self.get_random_word_not_in_csv()
 
         self.vertical_layout.clear_widgets()
@@ -617,7 +622,7 @@ class TheoryScreen(Screen):
 
         Clock.schedule_once(lambda dt: recalculate_all_heights())
 
-        self.next_button.text = 'Следущее слово'
+        self.next_button.set_text('Следующее слово')
         self.add_word_to_database(self.rand_word)
 
     def more_w(self, *args):
