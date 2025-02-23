@@ -46,24 +46,27 @@ alt_font_style = "IntroDemoCond-LightCAPS.otf"
 
 class PressableButton(Widget):
     def __init__(self, text="", shadow_height=6, font_size=18, size=(300, 100), color=(0.2, 0.6, 0.8, 1),
-                 shadow_color=(0.1, 0.4, 0.6, 1), on_release_callback=None, **kwargs):
+                 shadow_color=(0.1, 0.4, 0.6, 1), on_release_callback=None, disabled=False, **kwargs):
         super().__init__(**kwargs)
-        self.color = color if len(color) == 4 else self.rgb_to_kivy_color(color)
-        self.shadow_color = shadow_color if len(shadow_color) == 4 else self.rgb_to_kivy_color(shadow_color)
-        self.text = text
-        self.font_size = font_size
+        self.default_color = color
+        self.default_shadow_color = shadow_color
+        self.disabled_color = (0.5, 0.5, 0.5, 1)
+        self.text_color = (1, 1, 1, 1)
+        self.disabled_text_color = (0.7, 0.7, 0.7, 1)
         self.shadow_height = dp(shadow_height)
         self.on_release_callback = on_release_callback
         self.size = kwargs.get("size", size)
         self.pos = kwargs.get("pos", (100, 200))
+        self.disabled = disabled
+        self.text = text
+        self.font_size = font_size
 
-        self.is_pressed = False
+        self.color = self.disabled_color if self.disabled else self.default_color
+        self.shadow_color = self.default_shadow_color if not self.disabled else self.disabled_color
 
         with self.canvas:
-            # Тень
             self.shadow_color_instruction = Color(*self.shadow_color)
-            self.shadow = RoundedRectangle(size=(self.size[0], self.size[1]),
-                                           pos=(self.pos[0], self.pos[1] - self.shadow_height), radius=[20])
+            self.shadow = RoundedRectangle(size=self.size, pos=(self.pos[0], self.pos[1] - self.shadow_height), radius=[20])
 
             self.color_instruction = Color(*self.color)
             self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[20])
@@ -75,29 +78,25 @@ class PressableButton(Widget):
             size=self.size,
             pos=self.pos,
             font_size=sp(self.font_size),
-            color=(1, 1, 1, 1),
+            color=self.disabled_text_color if self.disabled else self.text_color,
             font_name=main_font_style
         )
         self.add_widget(self.label)
 
         self.bind(pos=self.update_graphics, size=self.update_graphics)
 
-    @staticmethod
-    def rgb_to_kivy_color(rgb, alpha=1.0):
-        return tuple(channel / 255 for channel in rgb) + (alpha,)
-
     def update_graphics(self, *args):
         self.shadow.size = self.size
         self.shadow.pos = (self.pos[0], self.pos[1] - self.shadow_height)
         self.rect.size = self.size
         self.rect.pos = self.pos
-
         self.label.size = self.size
         self.label.pos = self.pos
 
     def on_touch_down(self, touch):
+        if self.disabled:
+            return False
         if self.collide_point(*touch.pos):
-            self.is_pressed = True
             self.rect.pos = (self.pos[0], self.pos[1] - self.shadow_height)
             self.label.pos = (self.pos[0], self.pos[1] - self.shadow_height)
             self.shadow_color_instruction.a = 0
@@ -105,21 +104,27 @@ class PressableButton(Widget):
         return super().on_touch_down(touch)
 
     def on_touch_up(self, touch):
-        if self.is_pressed:
-            self.is_pressed = False
+        if self.disabled:
+            return False
+        if self.collide_point(*touch.pos):
             self.rect.pos = self.pos
             self.label.pos = self.pos
             self.shadow_color_instruction.a = 1
-
             if self.on_release_callback:
                 self.on_release_callback()
             return True
         return super().on_touch_up(touch)
 
-    def on_touch_move(self, touch):
-        if self.is_pressed:
-            return True
-        return super().on_touch_move(touch)
+    def set_disabled(self, state=True):
+        self.disabled = state
+        self.color = self.disabled_color if self.disabled else self.default_color
+        self.color_instruction.rgba = self.color
+        self.shadow_color_instruction.rgba = self.disabled_color if self.disabled else self.default_shadow_color
+        self.label.color = self.disabled_text_color if self.disabled else self.text_color
+
+    def set_text(self, new_text):
+        self.text = new_text
+        self.label.text = new_text
 
 
 class SettingsScreen(Screen):
