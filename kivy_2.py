@@ -23,10 +23,18 @@ from kivy.uix.image import Image
 from kivy.uix.behaviors import ButtonBehavior
 from kivy.clock import Clock
 import threading
+from openai import OpenAI
+import dotenv
+import os
+
+dotenv.load_dotenv(dotenv.find_dotenv())
 
 Window.size = (432, 768)
 Window.title = 'LexiLearn'
-client = Client()
+client = OpenAI(
+    api_key=os.environ.get('API'),
+    base_url="https://api.proxyapi.ru/openai/v1",
+)
 
 print("Current DPI:", Window.dpi)
 
@@ -436,33 +444,23 @@ class TheoryScreen(Screen):
 
         self.close_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)))
 
-        # # Кнопка "Назад"
-        # self.back_button = PressableButton(text="Назад", on_release_callback=lambda: self.go_back())
-
-        # Кнопка "Сгенерировать слово"
         self.next_button = PressableButton(text="СГЕНЕРИРОВАТЬ СЛОВО", font_size=20, size=(dp(200), dp(75)),
                                            on_release_callback=lambda: self.text_load())
 
-        # Кнопка "Добавить в конспект"
         self.jorn_button = PressableButton(text="в 'мои' слова", font_size=16,
                                            on_release_callback=lambda: self.add_to_my_words())
 
-        # Кнопка "Больше примеров"
         self.more_ex_button = PressableButton(text="Ещё примеры", on_release_callback=lambda: self.more_w(),
                                               font_size=16)
 
-        # Верхняя панель
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(20))
         self.toolbar.add_widget(self.close_button)
 
-        # Нижняя панель
         self.toolbar2 = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(60))
         self.toolbar2.add_widget(self.next_button)
 
-        # Прокручиваемая область
         self.scroll_view = ScrollView(size_hint=(1, 1))
 
-        # Текстовые метки
         self.label = Label(
             halign='center',
             valign='middle',
@@ -473,9 +471,6 @@ class TheoryScreen(Screen):
         )
         self.label.bind(texture_size=self._resize_label)
 
-        # Добавляем текстовый лейаут в прокручиваемую область
-
-        # Основной лейаут
         self.main_layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(20))
 
         self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
@@ -485,14 +480,12 @@ class TheoryScreen(Screen):
 
         self.scroll_view.add_widget(self.vertical_layout)
 
-        # Лейаут для дополнительных кнопок
         self.func_layout2 = BoxLayout(size_hint_y=None, height=dp(60), spacing=dp(14))
         self.func_layout2.add_widget(self.jorn_button)
         self.func_layout2.add_widget(self.more_ex_button)
 
-        # Добавляем все элементы в основной лейаут
         self.main_layout.add_widget(self.toolbar)
-        self.main_layout.add_widget(self.scroll_view)  # ScrollView занимает всё оставшееся пространство
+        self.main_layout.add_widget(self.scroll_view)
         self.main_layout.add_widget(self.func_layout2)
         self.main_layout.add_widget(self.toolbar2)
 
@@ -671,24 +664,80 @@ class TheoryScreen(Screen):
         self.add_word_to_database(self.rand_word)
 
     def more_w(self, *args):
-        """Генерация дополнительных примеров предложений."""
+        """Генерация дополнительных примеров предложений и добавление в ScrollView."""
+        if not hasattr(self, "rand_word") or not self.rand_word:
+            print("Слово ещё не сгенерировано.")
+            return
+
         try:
             response = client.chat.completions.create(
                 model="gpt-3.5-turbo",
                 messages=[{"role": "user",
-                           "content": f"make 3 examples of sentences in English using the word {self.rand_word}"
-                                      " After each sentence, put a ' / ' sign and write a translation into Russian."
-                                      " Do not keep the numbering of "
-                                      "sentences. Sample sentences should be no longer than 65 characters. "
-                                      "Example of formatting: Не admitted that he was lost. / Он признал, что заблудился."}])
-            text = response.choices[0].message.content
-            self.final_gen = str()
-            text_list_form = [i.split(' / ') for i in text.split('\n') if i.strip()]
-            for i in text_list_form:
-                self.final_gen += f'{i[0]}\n{i[1]}\n\n'
-            self.label2.text += self.final_gen
+                           "content": f"Give one example sentence in English using the word '{self.rand_word}'. "
+                                      "After the sentence, put a ' / ' sign and provide a Russian translation. "
+                                      "Example: He admitted that he was lost. / Он признал, что заблудился."}]
+            )
+
+            new_example = response.choices[0].message.content.strip()
+            print(new_example)
+            example_parts = new_example.split(' / ')
+
+            if len(example_parts) < 2:
+                print("Ошибка API: Получен некорректный формат ответа.")
+                return
+
+            english_sentence = example_parts[0].strip()
+            russian_translation = example_parts[1].strip()
+
+            # Создаём горизонтальный контейнер для нового примера
+            horizontal_container = BoxLayout(
+                orientation="horizontal",
+                size_hint=(1, None),
+                spacing=dp(10),
+                height=dp(70)
+            )
+
+            # Метка с текстом примера
+            label = Label(
+                text=f"{english_sentence}\n------------------\n{russian_translation}",
+                size_hint=(1, None),
+                font_size=sp(18),
+                halign="left",
+                valign="middle",
+                text_size=(0, None),
+                font_name="IntroDemo-BlackCAPS.otf"
+            )
+
+            # Привязываем высоту текста к лейблу
+            label.bind(
+                width=lambda s, w: s.setter('text_size')(s, (w, None)),
+                texture_size=lambda s, t: s.setter('height')(s, t[1])
+            )
+
+            empty_widget = Widget(size_hint=(None, None), size=(dp(50), dp(50)))
+
+            horizontal_container.add_widget(empty_widget)
+            horizontal_container.add_widget(label)
+
+            # Функция для обновления высоты контейнера после рендеринга текста
+            def update_height(*_):
+                max_height = max(child.height for child in horizontal_container.children)
+                horizontal_container.height = max_height + dp(10)
+                print(f"Updated example block height: {horizontal_container.height}")
+
+            Clock.schedule_once(update_height)
+
+            # Добавляем новый контейнер в вертикальный список
+            self.vertical_layout.add_widget(horizontal_container)
+
         except Exception as e:
-            self.label2.text += 'Функция доп. примеров\nвременно недоступна'
+            print(f"Ошибка при запросе к API: {e}")
+            error_label = Label(
+                text="Ошибка загрузки примера...",
+                font_size=sp(18),
+                color=(1, 0, 0, 1)
+            )
+            self.vertical_layout.add_widget(error_label)
 
     def on_size(self, *args):
         """Обновляет размеры фона и текстовых областей."""
