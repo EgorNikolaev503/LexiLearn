@@ -66,7 +66,8 @@ class PressableButton(Widget):
 
         with self.canvas:
             self.shadow_color_instruction = Color(*self.shadow_color)
-            self.shadow = RoundedRectangle(size=self.size, pos=(self.pos[0], self.pos[1] - self.shadow_height), radius=[20])
+            self.shadow = RoundedRectangle(size=self.size, pos=(self.pos[0], self.pos[1] - self.shadow_height),
+                                           radius=[20])
 
             self.color_instruction = Color(*self.color)
             self.rect = RoundedRectangle(size=self.size, pos=self.pos, radius=[20])
@@ -1394,26 +1395,15 @@ class SearchMenuComp(Screen):
             halign='center',
             valign='middle',
             size_hint=(1, None),
-            text='\n\nМожно просматривать только те слова, которые были раннее добавленны в разделе "мои" слова',
+            text='Введите слово в поле выше',
             font_size=sp(24),
+            font_name=main_font_style
         )
-        self.label.bind(texture_size=self._resize_label)
-
-        self.label2 = Label(
-            halign='center',
-            valign='top',
-            size_hint=(1, None),
-            font_size=sp(18),
-        )
-        self.label2.bind(texture_size=self._resize_label)
-
         self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[10], spacing=10)
-        self.text_layout.bind(minimum_height=self.text_layout.setter('height'))
-
-        self.text_layout.add_widget(self.label)
-        self.text_layout.add_widget(self.label2)
-        self.scroll_view.add_widget(self.text_layout)
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
+        self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
+        self.vertical_layout.add_widget(self.label)
+        self.scroll_view.add_widget(self.vertical_layout)
 
         self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
                                        pos_hint={'top': 1})
@@ -1458,25 +1448,115 @@ class SearchMenuComp(Screen):
         conn.close()
         return words
 
+    def text_gen(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f"\nВаше слово: {word}\n",
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
+        examples = super_dict.get(word, [])
+        if not examples:
+            self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=sp(18)))
+            return
+
+        for i in range(min(3, len(examples))):
+            example_pair = examples[i]
+
+            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=dp(10))
+
+            example_label = Label(
+                text=f'{example_pair[0]}\n------------------\n{example_pair[1]}',
+                size_hint=(1, None),
+                font_size=sp(18),
+                halign="left",
+                valign="middle",
+                text_size=(0, None),
+                font_name="IntroDemo-BlackCAPS.otf"
+            )
+            example_label.bind(
+                width=lambda s, w: s.setter('text_size')(s, (w, None)),
+                texture_size=lambda s, t: s.setter('height')(s, t[1])
+            )
+
+            image = ImageButton(
+                source="audio.png",
+                size_hint=(None, None),
+                size=(dp(50), dp(50)),
+                pos_hint={'center_y': 0.5},
+                text=example_pair[0],
+                word=word
+            )
+
+            horizontal_container.add_widget(image)
+            horizontal_container.add_widget(example_label)
+
+            Clock.schedule_once(lambda dt: self.update_container_height(horizontal_container))
+
+            self.vertical_layout.add_widget(horizontal_container)
+
+        Clock.schedule_once(lambda dt: self.recalculate_all_heights())
+
+    def no_word(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f'Слово не добавлено в\nраздел "мои слова"',
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
+    def no_input(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f'Введите слово в поле выше',
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
     def search_proc(self, *args):
         self.word = self.search_widget.text
         if self.word in self.read_csv_as_list():
-            self.text_ex = f'Примеры предложений:\n\n{super_dict[self.word][0][0]}\n' \
-                           f'{super_dict[self.word][0][1]}\n\n{super_dict[self.word][1][0]}\n' \
-                           f'{super_dict[self.word][1][1]}\n\n{super_dict[self.word][2][0]}\n' \
-                           f'{super_dict[self.word][2][1]}\n\n'
-            self.label.text = f"\n\nВаше слово {self.word}\n\n"
-            self.label2.text = self.text_ex
+            self.text_gen(self.word)
         elif self.word in super_dict.keys() and not (self.word in self.read_csv_as_list()):
-            self.label.text = f"Слово ещё не изучено"
-            self.label2.text = 'Чтобы просмотреть любое слово из базы\nобратитесь к разделу "открытый банк слов"'
+            self.no_word(self.word)
         elif self.word == '':
-            self.label.text = f"Введите слово в поле выше"
+            self.no_input(self.word)
         else:
             self.label.text = f"Слово не найдено"
             self.label2.text = 'Проверьте правильность написания слова\n\n' \
                                'Если не помогло, то слова нет в базе\n' \
                                'из 1000 самых используемых слов в английском языке'
+
+    def update_container_height(self, horizontal_container):
+        max_height = max(child.height for child in horizontal_container.children)
+        horizontal_container.height = max_height + 20
+        print(f"Updated container height: {horizontal_container.height}")
+
+    def recalculate_all_heights(self, *_):
+        for child in self.vertical_layout.children:
+            if isinstance(child, BoxLayout):
+                max_height = max(grandchild.height for grandchild in child.children)
+                child.height = max_height + 20
+                print(f"Recalculated container height: {child.height}")
 
     def _resize_label(self, instance, texture_size):
         instance.height = instance.texture_size[1]
@@ -1489,7 +1569,6 @@ class SearchMenuComp(Screen):
     def on_size(self, *args):
         self.rect.size = self.size
         self.rect.pos = self.pos
-        self.label2.text_size = (self.width - 40, None)
         self.label.text_size = (self.width - 40, None)
 
 
