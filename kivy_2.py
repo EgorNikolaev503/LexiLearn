@@ -269,11 +269,9 @@ class WordShow(Screen):
     def __init__(self, **kwargs):
         super(WordShow, self).__init__(**kwargs)
 
-        self.back_button = Button(text="Назад", size_hint=(None, None), size=(dp(150), dp(75)))
-        self.back_button.bind(on_release=self.go_back)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)))
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
-        self.toolbar.add_widget(Label())
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(20))
         self.toolbar.add_widget(self.back_button)
 
         self.scroll_view = ScrollView(size_hint=(1, 1))
@@ -1537,14 +1535,11 @@ class SearchMenuComp(Screen):
         if self.word in self.read_csv_as_list():
             self.text_gen(self.word)
         elif self.word in super_dict.keys() and not (self.word in self.read_csv_as_list()):
-            self.no_word(self.word)
+            self.label.text = f'Слово не добавлено в раздел "мои слова"'
         elif self.word == '':
-            self.no_input(self.word)
+            self.label.text = f"Введите слово в поле выше"
         else:
             self.label.text = f"Слово не найдено"
-            self.label2.text = 'Проверьте правильность написания слова\n\n' \
-                               'Если не помогло, то слова нет в базе\n' \
-                               'из 1000 самых используемых слов в английском языке'
 
     def update_container_height(self, horizontal_container):
         max_height = max(child.height for child in horizontal_container.children)
