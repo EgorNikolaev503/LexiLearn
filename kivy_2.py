@@ -217,19 +217,17 @@ class AllWordsScreen(Screen):
 
     def go_back(self, *args):
         self.manager.transition = FadeTransition(duration=0.20)
-        self.manager.current = 'comp_words'
+        self.manager.current = 'main'
 
     def read_csv_as_list(self):
         conn = sqlite3.connect('words.db')
         cursor = conn.cursor()
 
-        cursor.execute('''
-                                SELECT word FROM words
-                                WHERE is_my = 1
-                            ''')
-
+        cursor.execute('SELECT word FROM words')
         words = [row[0] for row in cursor.fetchall()]
+
         conn.close()
+
         return words
 
     def text_gen(self, word):
@@ -1521,7 +1519,7 @@ class SearchMenuComp(Screen):
         self.manager.transition = FadeTransition(duration=0.20)
         self.manager.current = 'comp_words'
 
-    def read_csv_as_list(self):
+    def get_my_words(self):
         conn = sqlite3.connect('words.db')
         cursor = conn.cursor()
 
@@ -1620,9 +1618,9 @@ class SearchMenuComp(Screen):
 
     def search_proc(self, *args):
         self.word = self.search_widget.text.strip()
-        if self.word in self.read_csv_as_list():
+        if self.word in self.get_my_words():
             self.text_gen(self.word)
-        elif self.word in super_dict.keys() and not (self.word in self.read_csv_as_list()):
+        elif self.word in super_dict.keys() and not (self.word in self.get_my_words()):
             self.label.text = f'Слово не добавлено в раздел "мои слова"'
         elif self.word == '':
             self.label.text = f"Введите слово в поле выше"
