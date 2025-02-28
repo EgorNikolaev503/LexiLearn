@@ -175,38 +175,26 @@ class AllWordsScreen(Screen):
     def __init__(self, **kwargs):
         super(AllWordsScreen, self).__init__(**kwargs)
 
+        self.label = Label(
+            halign='center',
+            valign='middle',
+            size_hint=(1, None),
+            text='Введите слово в поле выше',
+            font_size=sp(24),
+            font_name=main_font_style
+        )
+        self.scroll_view = ScrollView(size_hint=(1, 1))
+        self.vertical_layout = BoxLayout(orientation="vertical", size_hint_y=None, spacing=dp(20), padding=dp(10))
+        self.vertical_layout.bind(minimum_height=self.vertical_layout.setter('height'))
+        self.vertical_layout.add_widget(self.label)
+        self.scroll_view.add_widget(self.vertical_layout)
+
         self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, None), size=(dp(20), dp(20)),
                                        pos_hint={'top': 1})
-
         self.search_button = PressableButton(text="Поиск", size_hint=(None, None), size=(dp(300), dp(70)),
                                              on_release_callback=lambda: self.search_proc())
 
         self.search_widget = TextInput(size_hint_y=None, height=dp(60), font_size=sp(32))
-
-        self.label = Label(
-            halign='center',
-            valign='middle',
-            size_hint_y=None,
-            text="\n\nВведите слово для поиска\n\n",
-            font_size=sp(24),
-        )
-        self.label.bind(texture_size=self._resize_label)
-
-        self.label2 = Label(
-            halign='center',
-            valign='top',
-            size_hint_y=None,
-            font_size=sp(18),
-        )
-        self.label2.bind(texture_size=self._resize_label)
-
-        self.scroll_view = ScrollView(size_hint=(1, 1))
-        self.text_layout = BoxLayout(orientation='vertical', size_hint_y=None, padding=[dp(10)], spacing=dp(10))
-        self.text_layout.bind(minimum_height=self.text_layout.setter('height'))
-
-        self.text_layout.add_widget(self.label)
-        self.text_layout.add_widget(self.label2)
-        self.scroll_view.add_widget(self.text_layout)
 
         self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(30), spacing=dp(10))
         self.toolbar.add_widget(self.back_button)
@@ -216,18 +204,140 @@ class AllWordsScreen(Screen):
         self.toolbar2.add_widget(self.search_button)
         self.toolbar2.add_widget(Label())
 
-        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
+        self.layout = BoxLayout(orientation='vertical', padding=[dp(20)])
         self.layout.add_widget(self.toolbar)
         self.layout.add_widget(self.search_widget)
         self.layout.add_widget(self.scroll_view)
         self.layout.add_widget(self.toolbar2)
         self.add_widget(self.layout)
 
-        self.bind(width=self._update_text_sizes)
-
         with self.canvas.before:
             self.color_rect = Color(0.23, 0.14, 0.4, 1)
             self.rect = Rectangle(size=self.size, pos=self.pos)
+
+    def go_back(self, *args):
+        self.manager.transition = FadeTransition(duration=0.20)
+        self.manager.current = 'comp_words'
+
+    def read_csv_as_list(self):
+        conn = sqlite3.connect('words.db')
+        cursor = conn.cursor()
+
+        cursor.execute('''
+                                SELECT word FROM words
+                                WHERE is_my = 1
+                            ''')
+
+        words = [row[0] for row in cursor.fetchall()]
+        conn.close()
+        return words
+
+    def text_gen(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f"\nВаше слово: {word}\n",
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
+        examples = super_dict.get(word, [])
+        if not examples:
+            self.vertical_layout.add_widget(Label(text="Примеры предложений отсутствуют.", font_size=sp(18)))
+            return
+
+        for i in range(min(3, len(examples))):
+            example_pair = examples[i]
+
+            horizontal_container = BoxLayout(orientation="horizontal", size_hint=(1, None), spacing=dp(10))
+
+            example_label = Label(
+                text=f'{example_pair[0]}\n------------------\n{example_pair[1]}',
+                size_hint=(1, None),
+                font_size=sp(18),
+                halign="left",
+                valign="middle",
+                text_size=(0, None),
+                font_name="IntroDemo-BlackCAPS.otf"
+            )
+            example_label.bind(
+                width=lambda s, w: s.setter('text_size')(s, (w, None)),
+                texture_size=lambda s, t: s.setter('height')(s, t[1])
+            )
+
+            image = ImageButton(
+                source="audio.png",
+                size_hint=(None, None),
+                size=(dp(50), dp(50)),
+                pos_hint={'center_y': 0.5},
+                text=example_pair[0],
+                word=word
+            )
+
+            horizontal_container.add_widget(image)
+            horizontal_container.add_widget(example_label)
+
+            Clock.schedule_once(lambda dt: self.update_container_height(horizontal_container))
+
+            self.vertical_layout.add_widget(horizontal_container)
+
+        Clock.schedule_once(lambda dt: self.recalculate_all_heights())
+
+    def no_word(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f'Слово не добавлено в\nраздел "мои слова"',
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
+    def no_input(self, word):
+        self.vertical_layout.clear_widgets()
+
+        label = Label(
+            text=f'Введите слово в поле выше',
+            font_size=sp(24),
+            halign="center",
+            valign="middle",
+            size_hint=(1, None),
+            font_name=main_font_style
+        )
+        label.bind(texture_size=self._resize_label)
+        self.vertical_layout.add_widget(label)
+
+    def search_proc(self, *args):
+        self.word = self.search_widget.text.strip()
+        if self.word in self.read_csv_as_list():
+            self.text_gen(self.word)
+        elif self.word in super_dict.keys() and not (self.word in self.read_csv_as_list()):
+            self.label.text = f'Слово ещё не изучено'
+        elif self.word == '':
+            self.label.text = f"Введите слово в поле выше"
+        else:
+            self.label.text = f"Слово не найдено в базе"
+
+    def update_container_height(self, horizontal_container):
+        max_height = max(child.height for child in horizontal_container.children)
+        horizontal_container.height = max_height + 20
+        print(f"Updated container height: {horizontal_container.height}")
+
+    def recalculate_all_heights(self, *_):
+        for child in self.vertical_layout.children:
+            if isinstance(child, BoxLayout):
+                max_height = max(grandchild.height for grandchild in child.children)
+                child.height = max_height + 20
+                print(f"Recalculated container height: {child.height}")
 
     def _resize_label(self, instance, texture_size):
         instance.height = instance.texture_size[1]
@@ -237,32 +347,10 @@ class AllWordsScreen(Screen):
         self.label2.text_size = (self.width - 40, None)
         self.label.text_size = (self.width - 40, None)
 
-    def go_back(self, *args):
-        self.manager.transition = FadeTransition(duration=0.20)
-        self.manager.current = 'main'
-
-    def search_proc(self, *args):
-        self.word = self.search_widget.text
-        if self.word in super_dict.keys():
-            text_ex = "Примеры предложений:\n\n"
-            for example_pair in super_dict[self.word]:
-                text_ex += f"{example_pair[0]}\n{example_pair[1]}\n\n"
-
-            self.label.text = f"\n\nВаше слово: {self.word}\n\n"
-            self.label2.text = text_ex
-        elif self.word == '':
-            self.label.text = f"Введите слово в поле выше"
-            self.label2.text = ''
-        else:
-            self.label.text = f"Слово не найдено"
-            self.label2.text = 'Проверьте правильность написания слова\n\n' \
-                               'Если не помогло, то слова нет в базе\n' \
-                               ' из 1000 самых используемых слов в английском языке'
-
     def on_size(self, *args):
         self.rect.size = self.size
         self.rect.pos = self.pos
-        self.label2.text_size = (self.width - 40, None)
+        self.label.text_size = (self.width - 40, None)
 
 
 class WordShow(Screen):
@@ -1531,7 +1619,7 @@ class SearchMenuComp(Screen):
         self.vertical_layout.add_widget(label)
 
     def search_proc(self, *args):
-        self.word = self.search_widget.text
+        self.word = self.search_widget.text.strip()
         if self.word in self.read_csv_as_list():
             self.text_gen(self.word)
         elif self.word in super_dict.keys() and not (self.word in self.read_csv_as_list()):
