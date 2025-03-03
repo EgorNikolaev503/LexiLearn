@@ -797,7 +797,7 @@ class PracticeScreen(Screen):
 
         self.layout = BoxLayout(orientation='vertical', padding=[dp(20)], spacing=dp(10))
 
-        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75), spacing=dp(10))
+        self.toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(50), spacing=dp(10))
 
         self.difficulty_spinner = Spinner(
             text='Легчайший',
@@ -806,15 +806,14 @@ class PracticeScreen(Screen):
             height=dp(75)
         )
         self.difficulty_spinner.bind(text=self.on_difficulty_change)
-        self.toolbar.add_widget(self.difficulty_spinner)
 
-        self.stop_button = Button(text="Завершить", size_hint=(1, None), height=dp(75))
-        self.stop_button.bind(on_release=self.stop)
-        self.toolbar.add_widget(self.stop_button)
+        self.stop_button = PressableButton(text="Завершить", height=dp(50),
+                                           on_release_callback=lambda: self.stop())
 
-        self.back_button = Button(text="Назад", size_hint=(1, None), height=dp(75))
-        self.back_button.bind(on_release=self.go_back)
+        self.back_button = CloseButton(on_close_callback=self.go_back, size_hint=(None, 1), size=(dp(20), dp(20)))
         self.toolbar.add_widget(self.back_button)
+        self.toolbar.add_widget(Label())
+        self.toolbar.add_widget(self.stop_button)
 
         self.center_label = Label(
             text="Выберите уровень сложности и нажимайте на кнопку 'Старт'",
@@ -823,8 +822,8 @@ class PracticeScreen(Screen):
         self.center_label.bind(texture_size=self._resize_label)
 
         self.bottom_toolbar = BoxLayout(orientation='horizontal', size_hint_y=None, height=dp(75))
-        self.start_button = Button(text="Старт", size_hint=(1, None), height=dp(75))
-        self.start_button.bind(on_release=self.start_practice)
+        self.start_button = PressableButton(text="Старт", height=dp(75),
+                                            on_release_callback=lambda: self.start_practice())
         self.bottom_toolbar.add_widget(self.start_button)
 
         self.question_layout = GridLayout(cols=3, spacing=dp(10), padding=[0, dp(10)], size_hint_y=None, height=0)
