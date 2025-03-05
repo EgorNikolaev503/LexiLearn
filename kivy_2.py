@@ -25,6 +25,7 @@ from kivy.clock import Clock
 import threading
 from openai import OpenAI
 import dotenv
+import inspect
 import os
 
 dotenv.load_dotenv(dotenv.find_dotenv())
@@ -100,7 +101,6 @@ class PressableButton(Widget):
         if self.collide_point(*touch.pos):
             self.rect.pos = (self.pos[0], self.pos[1] - self.shadow_height)
             self.label.pos = (self.pos[0], self.pos[1] - self.shadow_height)
-            self.shadow_color_instruction.a = 0
             return True
         return super().on_touch_down(touch)
 
@@ -110,22 +110,39 @@ class PressableButton(Widget):
         if self.collide_point(*touch.pos):
             self.rect.pos = self.pos
             self.label.pos = self.pos
-            self.shadow_color_instruction.a = 1
             if self.on_release_callback:
-                self.on_release_callback()
+                params = inspect.signature(self.on_release_callback).parameters
+                if len(params) > 0:
+                    self.on_release_callback(self)
+                else:
+                    self.on_release_callback()
             return True
         return super().on_touch_up(touch)
 
     def set_disabled(self, state=True):
         self.disabled = state
-        self.color = self.disabled_color if self.disabled else self.default_color
-        self.color_instruction.rgba = self.color
+        self.color_instruction.rgba = self.disabled_color if self.disabled else self.default_color
         self.shadow_color_instruction.rgba = self.disabled_color if self.disabled else self.default_shadow_color
         self.label.color = self.disabled_text_color if self.disabled else self.text_color
 
     def set_text(self, new_text):
         self.text = new_text
         self.label.text = new_text
+
+    def set_invisible(self, state=True):
+        alpha = 0 if state else 1
+        self.color_instruction.a = alpha
+        self.shadow_color_instruction.a = alpha
+        self.label.color = (1, 1, 1, alpha)
+        self.disabled = state
+
+    def set_color(self, new_color, new_shadow_color=None):
+        self.color = new_color
+        self.color_instruction.rgba = new_color
+
+        if new_shadow_color:
+            self.shadow_color = new_shadow_color
+            self.shadow_color_instruction.rgba = new_shadow_color
 
 
 class SettingsScreen(Screen):
@@ -829,8 +846,8 @@ class PracticeScreen(Screen):
         self.question_layout = GridLayout(cols=3, spacing=dp(10), padding=[0, dp(10)], size_hint_y=None, height=0)
         self.answer_buttons = []
         for _ in range(6):
-            btn = Button(size_hint=(1, None), height=dp(75), opacity=0)
-            btn.bind(on_release=self.select_answer)
+            btn = PressableButton(height=dp(75), on_release_callback=lambda instance: self.select_answer(instance))
+            btn.set_invisible()
             self.answer_buttons.append(btn)
             self.question_layout.add_widget(btn)
 
@@ -1111,12 +1128,12 @@ class PracticeScreen(Screen):
                 self.type_question = 6
                 self.load_new_question_s_input_audio_hard(self.main_word)
 
-            self.start_button.text = "Ответить"
+            self.start_button.set_text("Ответить")
             self.difficulty_spinner.disabled = True
             self.question_layout.height = dp(2 * 85)
 
             for btn in self.answer_buttons:
-                btn.opacity = 1
+                btn.set_invisible(False)
 
         elif self.start_button.text == "Ответить":
 
@@ -1137,9 +1154,10 @@ class PracticeScreen(Screen):
                 self.show_correct_answer_input_s_audio_hard(self.rand_sent_question_norm_ang,
                                                             self.rand_sent_question_norm_ru)
 
-            self.start_button.text = "Следующее слово"
+            self.start_button.set_text("Следующее слово")
         elif self.start_button.text == "Следующее слово":
-
+            for btn in self.answer_buttons:
+                btn.set_color((0.2, 0.6, 0.8, 1), (0.1, 0.4, 0.6, 1))
             ch = self.chance_get_main(self.stand_chanse[0], self.stand_chanse[1], self.stand_chanse[2],
                                       self.stand_chanse[3], self.stand_chanse[4], self.stand_chanse[5])
             self.center_label.color = [1, 1, 1, 1]
@@ -1173,7 +1191,7 @@ class PracticeScreen(Screen):
                 self.type_question = 6
                 self.load_new_question_s_input_audio_hard(self.main_word)
 
-            self.start_button.text = "Ответить"
+            self.start_button.set_text("Ответить")
 
     def load_new_question_w_btn(self, q_word):
         self.clear()
@@ -1195,9 +1213,7 @@ class PracticeScreen(Screen):
             self.question_layout.remove_widget(btn)
 
         for btn, answer in zip(self.answer_buttons, answers):
-            btn.text = answer
-            btn.background_color = [1, 1, 1, 1]
-            btn.disabled = False
+            btn.set_text(answer)
             self.question_layout.add_widget(btn)
 
         self.center_label.text = f"Переведите: {self.current_word}"
@@ -1231,9 +1247,7 @@ class PracticeScreen(Screen):
             self.question_layout.remove_widget(btn)
 
         for btn, answer in zip(self.answer_buttons, answers):
-            btn.text = answer
-            btn.background_color = [1, 1, 1, 1]
-            btn.disabled = False
+            btn.set_text(answer)
             self.question_layout.add_widget(btn)
 
         self.center_label.text = f"Вставьте слово: {self.rand_sent_question}"
@@ -1270,27 +1284,26 @@ class PracticeScreen(Screen):
 
     def select_answer(self, instance):
         self.selected_answer = instance.text
+        print(self.selected_answer)
         for btn in self.answer_buttons:
-            btn.background_color = [0.8, 0.8, 0.8, 1]
-        instance.background_color = [0.6, 0.6, 0.6, 1]
+            btn.set_color((0.1, 0.4, 0.6, 1), (0.08, 0.32, 0.48, 1))
+        instance.set_color((0.2, 0.6, 0.8, 1), (0.1, 0.4, 0.6, 1))
 
     def show_correct_answer_btn(self):
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
                 self.update_bd_for_word(self.main_word, 'type1')
-                btn.background_color = [0, 1, 0, 1]
+                btn.set_color((0, 0.5, 0, 1), (0, 0.23, 0, 1))
             else:
-                btn.background_color = [1, 0, 0, 1]
-            btn.disabled = True
+                btn.set_color((0.5, 0, 0, 1), (0.23, 0, 0, 1))
 
     def show_correct_answer_btn_s(self, ang, ru):
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
-                btn.background_color = [0, 1, 0, 1]
+                btn.set_color((0, 0.5, 0, 1), (0, 0.23, 0, 1))
                 self.update_bd_for_word(self.main_word, 'type2')
             else:
-                btn.background_color = [1, 0, 0, 1]
-            btn.disabled = True
+                btn.set_color((0.5, 0, 0, 1), (0.23, 0, 0, 1))
 
         self.center_label.text = f"{ang}\n\n{ru}"
 
