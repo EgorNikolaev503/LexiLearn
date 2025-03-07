@@ -1292,7 +1292,8 @@ class PracticeScreen(Screen):
     def show_correct_answer_btn(self):
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
-                self.update_bd_for_word(self.main_word, 'type1')
+                if btn.color == (0.2, 0.6, 0.8, 1):
+                    self.update_bd_for_word(self.main_word, 'type1')
                 btn.set_color((0, 0.5, 0, 1), (0, 0.23, 0, 1))
             else:
                 btn.set_color((0.5, 0, 0, 1), (0.23, 0, 0, 1))
@@ -1300,8 +1301,9 @@ class PracticeScreen(Screen):
     def show_correct_answer_btn_s(self, ang, ru):
         for btn in self.answer_buttons:
             if btn.text == self.correct_answer:
+                if btn.color == (0.2, 0.6, 0.8, 1):
+                    self.update_bd_for_word(self.main_word, 'type2')
                 btn.set_color((0, 0.5, 0, 1), (0, 0.23, 0, 1))
-                self.update_bd_for_word(self.main_word, 'type2')
             else:
                 btn.set_color((0.5, 0, 0, 1), (0.23, 0, 0, 1))
 
