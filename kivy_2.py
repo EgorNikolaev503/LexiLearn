@@ -1465,7 +1465,7 @@ class CompWordsScreen(Screen):
         self.manager.current = 'comp_search_menu'
 
     def word_show(self, screen_manager, word):
-        print(1)
+        word = word.text
         if not screen_manager.has_screen('word_show_window'):
             print("Создаём WordShow...")
             word_show_window = WordShow(name='word_show_window')
